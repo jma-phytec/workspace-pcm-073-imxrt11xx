@@ -24,11 +24,4 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>doc/readme.txt</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/boards/evkmimxrt1170/driver_examples/lpuart/interrupt_transfer/cm7/readme.txt</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>
