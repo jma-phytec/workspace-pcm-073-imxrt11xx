@@ -20,6 +20,10 @@
    </preferences>
    <tools>
       <pins name="Pins" version="12.0" enabled="true" update_project_code="true">
+         <generated_project_files>
+            <file path="board/pin_mux.c" update_enabled="true"/>
+            <file path="board/pin_mux.h" update_enabled="true"/>
+         </generated_project_files>
          <pins_profile>
             <processor_version>12.0.0</processor_version>
             <power_domains/>
@@ -584,6 +588,10 @@
          </functions_list>
       </pins>
       <clocks name="Clocks" version="10.0" enabled="true" update_project_code="true">
+         <generated_project_files>
+            <file path="board/clock_config.c" update_enabled="true"/>
+            <file path="board/clock_config.h" update_enabled="true"/>
+         </generated_project_files>
          <clocks_profile>
             <processor_version>12.0.0</processor_version>
          </clocks_profile>
@@ -786,11 +794,11 @@
                   <clock_output id="SAI3_MCLK3.outFreq" value="24 MHz" locked="false" accuracy=""/>
                   <clock_output id="SAI4_CLK_ROOT.outFreq" value="24 MHz" locked="false" accuracy=""/>
                   <clock_output id="SAI4_MCLK1.outFreq" value="24 MHz" locked="false" accuracy=""/>
-                  <clock_output id="SEMC_CLK_ROOT.outFreq" value="198 MHz" locked="false" accuracy=""/>
+                  <clock_output id="SEMC_CLK_ROOT.outFreq" value="132 MHz" locked="true" accuracy="0.001"/>
                   <clock_output id="SPDIF_CLK_ROOT.outFreq" value="24 MHz" locked="false" accuracy=""/>
                   <clock_output id="SYS_PLL2_CLK.outFreq" value="528 MHz" locked="false" accuracy=""/>
                   <clock_output id="SYS_PLL2_PFD0_CLK.outFreq" value="352 MHz" locked="false" accuracy=""/>
-                  <clock_output id="SYS_PLL2_PFD1_CLK.outFreq" value="594 MHz" locked="false" accuracy=""/>
+                  <clock_output id="SYS_PLL2_PFD1_CLK.outFreq" value="528 MHz" locked="false" accuracy=""/>
                   <clock_output id="SYS_PLL2_PFD2_CLK.outFreq" value="396 MHz" locked="false" accuracy=""/>
                   <clock_output id="SYS_PLL2_PFD3_CLK.outFreq" value="297 MHz" locked="false" accuracy=""/>
                   <clock_output id="SYS_PLL3_CLK.outFreq" value="480 MHz" locked="false" accuracy=""/>
@@ -815,6 +823,7 @@
                   <setting id="ANADIG_PLL.SYS_PLL2.denom" value="268435455" locked="false"/>
                   <setting id="ANADIG_PLL.SYS_PLL2.div" value="22" locked="false"/>
                   <setting id="ANADIG_PLL.SYS_PLL2.num" value="0" locked="false"/>
+                  <setting id="ANADIG_PLL.SYS_PLL2_PFD1_DIV.scale" value="18" locked="false"/>
                   <setting id="ANADIG_PLL.SYS_PLL2_SS_DIV.scale" value="268435455" locked="false"/>
                   <setting id="ANADIG_PLL.SYS_PLL3_PFD3_DIV.scale" value="22" locked="true"/>
                   <setting id="ANADIG_PLL.SYS_PLL3_PFD3_MUL.scale" value="18" locked="true"/>
@@ -836,7 +845,7 @@
                   <setting id="CCM.CLOCK_ROOT26.MUX.sel" value="ANADIG_PLL.SYS_PLL2_CLK" locked="false"/>
                   <setting id="CCM.CLOCK_ROOT3.DIV.scale" value="3" locked="false"/>
                   <setting id="CCM.CLOCK_ROOT3.MUX.sel" value="ANADIG_PLL.SYS_PLL3_CLK" locked="false"/>
-                  <setting id="CCM.CLOCK_ROOT4.DIV.scale" value="3" locked="false"/>
+                  <setting id="CCM.CLOCK_ROOT4.DIV.scale" value="4" locked="false"/>
                   <setting id="CCM.CLOCK_ROOT4.MUX.sel" value="ANADIG_PLL.SYS_PLL2_PFD1_CLK" locked="false"/>
                   <setting id="CCM.CLOCK_ROOT6.DIV.scale" value="4" locked="false"/>
                   <setting id="CCM.CLOCK_ROOT6.MUX.sel" value="ANADIG_PLL.SYS_PLL2_CLK" locked="false"/>
@@ -849,6 +858,10 @@
          </clock_configurations>
       </clocks>
       <dcdx name="DCDx" version="3.0" enabled="true" update_project_code="true">
+         <generated_project_files>
+            <file path="board/dcd.c" update_enabled="true"/>
+            <file path="board/dcd.h" update_enabled="true"/>
+         </generated_project_files>
          <dcdx_profile>
             <processor_version>12.0.0</processor_version>
             <output_format>c_array</output_format>
@@ -1025,6 +1038,7 @@
          </dcdx_configurations>
       </dcdx>
       <periphs name="Peripherals" version="11.0" enabled="false" update_project_code="true">
+         <generated_project_files/>
          <peripherals_profile>
             <processor_version>N/A</processor_version>
          </peripherals_profile>
@@ -1032,6 +1046,7 @@
          <components/>
       </periphs>
       <tee name="TEE" version="4.0" enabled="false" update_project_code="true">
+         <generated_project_files/>
          <tee_profile>
             <processor_version>N/A</processor_version>
          </tee_profile>

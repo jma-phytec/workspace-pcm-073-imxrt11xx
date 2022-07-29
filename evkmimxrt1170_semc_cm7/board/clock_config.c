@@ -1,11 +1,4 @@
 /*
- * Copyright 2020-2021 NXP
- * All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
-/*
  * How to setup clock using clock driver functions:
  *
  * 1. Call CLOCK_InitXXXPLL() to configure corresponding PLL clock.
@@ -18,11 +11,11 @@
 
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 !!GlobalInfo
-product: Clocks v8.0
+product: Clocks v10.0
 processor: MIMXRT1176xxxxx
 package_id: MIMXRT1176DVMAA
 mcu_data: ksdk2_0
-processor_version: 0.0.0
+processor_version: 12.0.0
 board: MIMXRT1170-EVK
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 
@@ -180,11 +173,11 @@ outputs:
 - {id: SAI3_MCLK3.outFreq, value: 24 MHz}
 - {id: SAI4_CLK_ROOT.outFreq, value: 24 MHz}
 - {id: SAI4_MCLK1.outFreq, value: 24 MHz}
-- {id: SEMC_CLK_ROOT.outFreq, value: 198 MHz}
+- {id: SEMC_CLK_ROOT.outFreq, value: 132 MHz, locked: true, accuracy: '0.001'}
 - {id: SPDIF_CLK_ROOT.outFreq, value: 24 MHz}
 - {id: SYS_PLL2_CLK.outFreq, value: 528 MHz}
 - {id: SYS_PLL2_PFD0_CLK.outFreq, value: 352 MHz}
-- {id: SYS_PLL2_PFD1_CLK.outFreq, value: 594 MHz}
+- {id: SYS_PLL2_PFD1_CLK.outFreq, value: 528 MHz}
 - {id: SYS_PLL2_PFD2_CLK.outFreq, value: 396 MHz}
 - {id: SYS_PLL2_PFD3_CLK.outFreq, value: 297 MHz}
 - {id: SYS_PLL3_CLK.outFreq, value: 480 MHz}
@@ -208,6 +201,7 @@ settings:
 - {id: ANADIG_PLL.SYS_PLL2.denom, value: '268435455'}
 - {id: ANADIG_PLL.SYS_PLL2.div, value: '22'}
 - {id: ANADIG_PLL.SYS_PLL2.num, value: '0'}
+- {id: ANADIG_PLL.SYS_PLL2_PFD1_DIV.scale, value: '18'}
 - {id: ANADIG_PLL.SYS_PLL2_SS_DIV.scale, value: '268435455'}
 - {id: ANADIG_PLL.SYS_PLL3_PFD3_DIV.scale, value: '22', locked: true}
 - {id: ANADIG_PLL.SYS_PLL3_PFD3_MUL.scale, value: '18', locked: true}
@@ -229,7 +223,7 @@ settings:
 - {id: CCM.CLOCK_ROOT26.MUX.sel, value: ANADIG_PLL.SYS_PLL2_CLK}
 - {id: CCM.CLOCK_ROOT3.DIV.scale, value: '3'}
 - {id: CCM.CLOCK_ROOT3.MUX.sel, value: ANADIG_PLL.SYS_PLL3_CLK}
-- {id: CCM.CLOCK_ROOT4.DIV.scale, value: '3'}
+- {id: CCM.CLOCK_ROOT4.DIV.scale, value: '4'}
 - {id: CCM.CLOCK_ROOT4.MUX.sel, value: ANADIG_PLL.SYS_PLL2_PFD1_CLK}
 - {id: CCM.CLOCK_ROOT6.DIV.scale, value: '4'}
 - {id: CCM.CLOCK_ROOT6.MUX.sel, value: ANADIG_PLL.SYS_PLL2_CLK}
@@ -394,7 +388,7 @@ void BOARD_BootClockRUN(void)
     CLOCK_InitPfd(kCLOCK_PllSys2, kCLOCK_Pfd0, 27);
 
     /* Init System Pll2 pfd1. */
-    CLOCK_InitPfd(kCLOCK_PllSys2, kCLOCK_Pfd1, 16);
+    CLOCK_InitPfd(kCLOCK_PllSys2, kCLOCK_Pfd1, 18);
 
     /* Init System Pll2 pfd2. */
     CLOCK_InitPfd(kCLOCK_PllSys2, kCLOCK_Pfd2, 24);
@@ -454,7 +448,7 @@ void BOARD_BootClockRUN(void)
     /* Configure SEMC using SYS_PLL2_PFD1_CLK */
 #ifndef SKIP_SEMC_INIT
     rootCfg.mux = kCLOCK_SEMC_ClockRoot_MuxSysPll2Pfd1;
-    rootCfg.div = 3;
+    rootCfg.div = 4;
     CLOCK_SetRootClock(kCLOCK_Root_Semc, &rootCfg);
 #endif
 
