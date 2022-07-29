@@ -65,11 +65,17 @@
 /*! @brief The USER_LED used for board */
 #define LOGIC_LED_ON  (0U)
 #define LOGIC_LED_OFF (1U)
-#ifndef BOARD_USER_LED_GPIO
-#define BOARD_USER_LED_GPIO GPIO9
+#ifndef BOARD_USER_LED1_GPIO
+#define BOARD_USER_LED1_GPIO GPIO9
 #endif
-#ifndef BOARD_USER_LED_GPIO_PIN
-#define BOARD_USER_LED_GPIO_PIN (3U)
+#ifndef BOARD_USER_LED2_GPIO
+#define BOARD_USER_LED2_GPIO GPIO12
+#endif
+#ifndef BOARD_USER_LED1_GPIO_PIN
+#define BOARD_USER_LED1_GPIO_PIN (13U)
+#endif
+#ifndef BOARD_USER_LED2_GPIO_PIN
+#define BOARD_USER_LED2_GPIO_PIN (13U)
 #endif
 
 #define USER_LED_INIT(output)                                            \

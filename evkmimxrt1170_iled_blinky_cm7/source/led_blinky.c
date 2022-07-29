@@ -12,8 +12,10 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define EXAMPLE_LED_GPIO     BOARD_USER_LED_GPIO
-#define EXAMPLE_LED_GPIO_PIN BOARD_USER_LED_GPIO_PIN
+#define EXAMPLE_LED1_GPIO     BOARD_USER_LED1_GPIO
+#define EXAMPLE_LED1_GPIO_PIN BOARD_USER_LED1_GPIO_PIN
+#define EXAMPLE_LED2_GPIO     BOARD_USER_LED2_GPIO
+#define EXAMPLE_LED2_GPIO_PIN BOARD_USER_LED2_GPIO_PIN
 
 
 /*******************************************************************************
@@ -73,12 +75,14 @@ int main(void)
         SysTick_DelayTicks(1000U);
         if (g_pinSet)
         {
-            GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 0U);
+            GPIO_PinWrite(EXAMPLE_LED1_GPIO, EXAMPLE_LED1_GPIO_PIN, 0U);
+            GPIO_PinWrite(EXAMPLE_LED2_GPIO, EXAMPLE_LED2_GPIO_PIN, 1U);
             g_pinSet = false;
         }
         else
         {
-            GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 1U);
+            GPIO_PinWrite(EXAMPLE_LED1_GPIO, EXAMPLE_LED1_GPIO_PIN, 1U);
+            GPIO_PinWrite(EXAMPLE_LED2_GPIO, EXAMPLE_LED2_GPIO_PIN, 0U);
             g_pinSet = true;
         }
     }
