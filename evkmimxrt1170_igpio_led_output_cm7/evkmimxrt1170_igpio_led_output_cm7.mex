@@ -20,8 +20,16 @@
    </preferences>
    <tools>
       <pins name="Pins" version="12.0" enabled="true" update_project_code="true">
+         <generated_project_files>
+            <file path="board/pin_mux.c" update_enabled="true"/>
+            <file path="board/pin_mux.h" update_enabled="true"/>
+         </generated_project_files>
          <pins_profile>
             <processor_version>12.0.0</processor_version>
+            <pin_labels>
+               <pin_label pin_num="U6" pin_signal="GPIO_LPSR_13" label="GND" identifier="LED2"/>
+               <pin_label pin_num="N14" pin_signal="GPIO_AD_14" label="SPDIF_EXT_CLK/CAN_STBY/J9[16]" identifier="LED1"/>
+            </pin_labels>
             <power_domains/>
          </pins_profile>
          <functions_list>
@@ -48,6 +56,11 @@
                         <data>true</data>
                      </feature>
                   </dependency>
+                  <dependency resourceType="SWComponent" resourceId="platform.drivers.igpio" description="Pins initialization requires the IGPIO Driver in the project." problem_level="2" source="Pins:BOARD_InitPins">
+                     <feature name="enabled" evaluation="equal" configuration="cm7">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
                </dependencies>
                <pins>
                   <pin peripheral="LPUART1" signal="RXD" pin_num="M15" pin_signal="GPIO_AD_25">
@@ -56,12 +69,26 @@
                      </pin_features>
                   </pin>
                   <pin peripheral="LPUART1" signal="TXD" pin_num="L13" pin_signal="GPIO_AD_24"/>
-                  <pin peripheral="GPIO9" signal="gpio_io, 03" pin_num="M13" pin_signal="GPIO_AD_04"/>
+                  <pin peripheral="GPIO9" signal="gpio_io, 13" pin_num="N14" pin_signal="GPIO_AD_14">
+                     <pin_features>
+                        <pin_feature name="direction" value="OUTPUT"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="GPIO12" signal="gpio_io, 13" pin_num="U6" pin_signal="GPIO_LPSR_13">
+                     <pin_features>
+                        <pin_feature name="direction" value="OUTPUT"/>
+                        <pin_feature name="pull_keeper_select" value="Pull"/>
+                     </pin_features>
+                  </pin>
                </pins>
             </function>
          </functions_list>
       </pins>
       <clocks name="Clocks" version="10.0" enabled="true" update_project_code="true">
+         <generated_project_files>
+            <file path="board/clock_config.c" update_enabled="true"/>
+            <file path="board/clock_config.h" update_enabled="true"/>
+         </generated_project_files>
          <clocks_profile>
             <processor_version>12.0.0</processor_version>
          </clocks_profile>
@@ -327,6 +354,10 @@
          </clock_configurations>
       </clocks>
       <dcdx name="DCDx" version="3.0" enabled="true" update_project_code="true">
+         <generated_project_files>
+            <file path="board/dcd.c" update_enabled="true"/>
+            <file path="board/dcd.h" update_enabled="true"/>
+         </generated_project_files>
          <dcdx_profile>
             <processor_version>12.0.0</processor_version>
             <output_format>c_array</output_format>
@@ -503,6 +534,7 @@
          </dcdx_configurations>
       </dcdx>
       <periphs name="Peripherals" version="11.0" enabled="false" update_project_code="true">
+         <generated_project_files/>
          <peripherals_profile>
             <processor_version>N/A</processor_version>
          </peripherals_profile>
@@ -510,6 +542,7 @@
          <components/>
       </periphs>
       <tee name="TEE" version="4.0" enabled="false" update_project_code="true">
+         <generated_project_files/>
          <tee_profile>
             <processor_version>N/A</processor_version>
          </tee_profile>

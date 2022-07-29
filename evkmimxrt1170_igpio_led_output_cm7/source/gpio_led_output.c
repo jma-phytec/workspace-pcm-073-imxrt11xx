@@ -15,8 +15,10 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define EXAMPLE_LED_GPIO     BOARD_USER_LED_GPIO
-#define EXAMPLE_LED_GPIO_PIN BOARD_USER_LED_GPIO_PIN
+#define EXAMPLE_LED1_GPIO     BOARD_USER_LED1_GPIO
+#define EXAMPLE_LED1_GPIO_PIN BOARD_USER_LED1_GPIO_PIN
+#define EXAMPLE_LED2_GPIO     BOARD_USER_LED2_GPIO
+#define EXAMPLE_LED2_GPIO_PIN BOARD_USER_LED2_GPIO_PIN
 
 /*******************************************************************************
  * Prototypes
@@ -49,22 +51,26 @@ int main(void)
     PRINTF("\r\n The LED is blinking.\r\n");
 
     /* Init output LED GPIO. */
-    GPIO_PinInit(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, &led_config);
+    GPIO_PinInit(EXAMPLE_LED1_GPIO, EXAMPLE_LED1_GPIO_PIN, &led_config);
+    GPIO_PinInit(EXAMPLE_LED2_GPIO, EXAMPLE_LED2_GPIO_PIN, &led_config);
 
     while (1)
     {
         SDK_DelayAtLeastUs(100000, SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY);
 #if (defined(FSL_FEATURE_IGPIO_HAS_DR_TOGGLE) && (FSL_FEATURE_IGPIO_HAS_DR_TOGGLE == 1))
-        GPIO_PortToggle(EXAMPLE_LED_GPIO, 1u << EXAMPLE_LED_GPIO_PIN);
+        GPIO_PortToggle(EXAMPLE_LED1_GPIO, 1u << EXAMPLE_LED1_GPIO_PIN);
+        GPIO_PortToggle(EXAMPLE_LED2_GPIO, 1u << EXAMPLE_LED2_GPIO_PIN);
 #else
         if (g_pinSet)
         {
-            GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 0U);
+            GPIO_PinWrite(EXAMPLE_LED1_GPIO, EXAMPLE_LED1_GPIO_PIN, 0U);
+            GPIO_PinWrite(EXAMPLE_LED2_GPIO, EXAMPLE_LED2_GPIO_PIN, 1U);
             g_pinSet = false;
         }
         else
         {
-            GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 1U);
+            GPIO_PinWrite(EXAMPLE_LED1_GPIO, EXAMPLE_LED1_GPIO_PIN, 1U);
+            GPIO_PinWrite(EXAMPLE_LED2_GPIO, EXAMPLE_LED2_GPIO_PIN, 0U);
             g_pinSet = true;
         }
 #endif /* FSL_FEATURE_IGPIO_HAS_DR_TOGGLE */
