@@ -102,7 +102,7 @@
 #endif
 
 /*! @brief The ENET0 PHY address. */
-#define BOARD_ENET0_PHY_ADDRESS (0x02U) /* Phy address of enet port 0. */
+#define BOARD_ENET0_PHY_ADDRESS (0x01U) /* Phy address of enet port 0. */
 
 /*! @brief The ENET1 PHY address. */
 #define BOARD_ENET1_PHY_ADDRESS (0x01U) /* Phy address of enet port 1. */
@@ -180,7 +180,7 @@
 /* Below comment is for test script to easily define which port to be used, please don't delete. */
 /* @TEST_ANCHOR */
 #ifndef BOARD_NETWORK_USE_100M_ENET_PORT
-#define BOARD_NETWORK_USE_100M_ENET_PORT (0U)
+#define BOARD_NETWORK_USE_100M_ENET_PORT (1U)
 #endif
 
 #if defined(__cplusplus)
