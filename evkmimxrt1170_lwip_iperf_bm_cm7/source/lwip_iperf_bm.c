@@ -29,7 +29,7 @@
 #if BOARD_NETWORK_USE_100M_ENET_PORT
 #include "fsl_phyksz8081.h"
 #else
-#include "fsl_phyrtl8211f.h"
+#include "fsl_phydp83867ir.h"
 #endif
 #include "fsl_enet_mdio.h"
 #include "fsl_enet.h"
@@ -50,7 +50,7 @@
 #define configIP_ADDR2 0
 #endif
 #ifndef configIP_ADDR3
-#define configIP_ADDR3 102
+#define configIP_ADDR3 2
 #endif
 
 /* Netmask configuration. */
@@ -78,7 +78,7 @@
 #define configGW_ADDR2 0
 #endif
 #ifndef configGW_ADDR3
-#define configGW_ADDR3 100
+#define configGW_ADDR3 1
 #endif
 
 #if BOARD_NETWORK_USE_100M_ENET_PORT
@@ -92,7 +92,7 @@
 /* Address of PHY interface. */
 #define EXAMPLE_PHY_ADDRESS   BOARD_ENET1_PHY_ADDRESS
 /* PHY operations. */
-#define EXAMPLE_PHY_OPS       phyrtl8211f_ops
+#define EXAMPLE_PHY_OPS       phydp83867ir_ops
 /* ENET instance select. */
 #define EXAMPLE_NETIF_INIT_FN ethernetif1_init
 #endif
