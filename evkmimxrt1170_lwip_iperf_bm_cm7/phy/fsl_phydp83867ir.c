@@ -51,14 +51,15 @@
 
 
 /* RGMIIDCTL bits */
-#define DP83867_RGMII_TX_CLK_DELAY_MAX		0xf
+#define DP83867_RGMII_TX_CLK_DELAY_MAX		0x5
 #define DP83867_RGMII_TX_CLK_DELAY_SHIFT	4
 #define DP83867_RGMII_TX_CLK_DELAY_INV	(DP83867_RGMII_TX_CLK_DELAY_MAX + 1)
-#define DP83867_RGMII_RX_CLK_DELAY_MAX		0xf
+#define DP83867_RGMII_RX_CLK_DELAY_MAX		0x5
 #define DP83867_RGMII_RX_CLK_DELAY_SHIFT	0
 #define DP83867_RGMII_RX_CLK_DELAY_INV	(DP83867_RGMII_RX_CLK_DELAY_MAX + 1)
 
 /* RGMIICTL bits */
+#define DP83867_RGMII_EN		0x80
 #define DP83867_RGMII_TX_CLK_DELAY_EN		0x02
 #define DP83867_RGMII_RX_CLK_DELAY_EN		0x01
 
@@ -180,28 +181,30 @@ status_t PHY_DP83867IR_Init(phy_handle_t *handle, const phy_config_t *config)
 
 	regValue |= DP83867_RGMII_RX_CLK_DELAY_EN;
 
+	regValue |= DP83867_RGMII_EN;
+
 	result = PHY_DP83867IR_MMD_Write(handle, DP83867_DEVADDR, DP83867_RGMIICTL, regValue);
     if (result != kStatus_Success)
     {
         return result;
     }
 
-	regValue = 0;
+	result = PHY_DP83867IR_MMD_Read(handle, DP83867_DEVADDR, DP83867_RGMIIDCTL, &regValue);
+    if (result != kStatus_Success)
+    {
+        return result;
+    }
+
+    regValue = 0;
 	regValue |= DP83867_RGMII_RX_CLK_DELAY_MAX;
 	regValue |= DP83867_RGMII_TX_CLK_DELAY_MAX <<
 			 DP83867_RGMII_TX_CLK_DELAY_SHIFT;
 
-	result = PHY_DP83867IR_MMD_Write(handle, DP83867_DEVADDR, DP83867_RGMIICTL, regValue);
+	result = PHY_DP83867IR_MMD_Write(handle, DP83867_DEVADDR, DP83867_RGMIIDCTL, regValue);
     if (result != kStatus_Success)
     {
         return result;
     }
-	result = PHY_DP83867IR_MMD_Write(handle, DP83867_DEVADDR, DP83867_RGMIICTL, regValue);
-    if (result != kStatus_Success)
-    {
-        return result;
-    }
-
 
     if (config->autoNeg)
     {
