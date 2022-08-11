@@ -51,10 +51,10 @@
 
 
 /* RGMIIDCTL bits */
-#define DP83867_RGMII_TX_CLK_DELAY_MAX		0x0
+#define DP83867_RGMII_TX_CLK_DELAY_MAX		0xf
 #define DP83867_RGMII_TX_CLK_DELAY_SHIFT	4
 #define DP83867_RGMII_TX_CLK_DELAY_INV	(DP83867_RGMII_TX_CLK_DELAY_MAX + 1)
-#define DP83867_RGMII_RX_CLK_DELAY_MAX		0x0
+#define DP83867_RGMII_RX_CLK_DELAY_MAX		0xf
 #define DP83867_RGMII_RX_CLK_DELAY_SHIFT	0
 #define DP83867_RGMII_RX_CLK_DELAY_INV	(DP83867_RGMII_RX_CLK_DELAY_MAX + 1)
 
@@ -165,7 +165,7 @@ status_t PHY_DP83867IR_Init(phy_handle_t *handle, const phy_config_t *config)
     {
         return result;
     }
-#if 1
+
 	/* internal delay */
 	result = PHY_DP83867IR_MMD_Read(handle, DP83867_DEVADDR, DP83867_RGMIICTL, &regValue);
     if (result != kStatus_Success)
@@ -201,7 +201,7 @@ status_t PHY_DP83867IR_Init(phy_handle_t *handle, const phy_config_t *config)
     {
         return result;
     }
-#endif
+
 
     if (config->autoNeg)
     {

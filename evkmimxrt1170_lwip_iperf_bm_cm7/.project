@@ -71,46 +71,6 @@
 			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/UPGRADING</locationURI>
 		</link>
 		<link>
-			<name>lwip/doc/FILES</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/FILES</locationURI>
-		</link>
-		<link>
-			<name>lwip/doc/NO_SYS_SampleCode.c</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/NO_SYS_SampleCode.c</locationURI>
-		</link>
-		<link>
-			<name>lwip/doc/ZeroCopyRx.c</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/ZeroCopyRx.c</locationURI>
-		</link>
-		<link>
-			<name>lwip/doc/contrib.txt</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/contrib.txt</locationURI>
-		</link>
-		<link>
-			<name>lwip/doc/mdns.txt</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/mdns.txt</locationURI>
-		</link>
-		<link>
-			<name>lwip/doc/mqtt_client.txt</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/mqtt_client.txt</locationURI>
-		</link>
-		<link>
-			<name>lwip/doc/ppp.txt</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/ppp.txt</locationURI>
-		</link>
-		<link>
-			<name>lwip/doc/savannah.txt</name>
-			<type>1</type>
-			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/doc/savannah.txt</locationURI>
-		</link>
-		<link>
 			<name>lwip/src/FILES</name>
 			<type>1</type>
 			<locationURI>SDK_2_x_MIMXRT1170_EVK/middleware/lwip/src/FILES</locationURI>
