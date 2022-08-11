@@ -12,8 +12,7 @@
  ******************************************************************************/
 
 /*! @brief Defines the PHY DP83867IR vendor defined registers. */
-#define PHY_PHYCTRL_REG	0x10U
-#define PHY_STATUS_REG	0x11U /*!< The PHY specific status register. */
+#define PHY_STATUS_REG 0x11U /*!< The PHY specific status register. */
 
 /*! @brief Defines the PHY DP83867IR ID number. */
 #define PHY_CONTROL_ID1 0x2000U /*!< The PHY ID1 . */
@@ -42,42 +41,6 @@
 /*! @brief Defines the timeout macro. */
 #define PHY_READID_TIMEOUT_COUNT 1000U
 
-/* PHY CTRL bits */
-#define DP83867_PHYCR_TX_FIFO_DEPTH_SHIFT	14
-#define DP83867_PHYCR_RX_FIFO_DEPTH_SHIFT	12
-#define DP83867_PHYCR_FIFO_DEPTH_MAX		0x03
-#define DP83867_PHYCR_TX_FIFO_DEPTH_MASK	0xc0
-#define DP83867_PHYCR_RX_FIFO_DEPTH_MASK	0x30
-
-
-/* RGMIIDCTL bits */
-#define DP83867_RGMII_TX_CLK_DELAY_MAX		0xf
-#define DP83867_RGMII_TX_CLK_DELAY_SHIFT	4
-#define DP83867_RGMII_TX_CLK_DELAY_INV	(DP83867_RGMII_TX_CLK_DELAY_MAX + 1)
-#define DP83867_RGMII_RX_CLK_DELAY_MAX		0xf
-#define DP83867_RGMII_RX_CLK_DELAY_SHIFT	0
-#define DP83867_RGMII_RX_CLK_DELAY_INV	(DP83867_RGMII_RX_CLK_DELAY_MAX + 1)
-
-/* RGMIICTL bits */
-#define DP83867_RGMII_TX_CLK_DELAY_EN		0x02
-#define DP83867_RGMII_RX_CLK_DELAY_EN		0x01
-
-#define DP83867_DEVADDR		0x1f
-#define DP83867_RGMIICTL	0x0032
-#define DP83867_STRAP_STS1	0x006E
-#define DP83867_STRAP_STS2	0x006f
-#define DP83867_RGMIIDCTL	0x0086
-#define DP83867_DSP_FFE_CFG	0x012C
-#define DP83867_RXFCFG		0x0134
-#define DP83867_RXFPMD1	0x0136
-#define DP83867_RXFPMD2	0x0137
-#define DP83867_RXFPMD3	0x0138
-#define DP83867_RXFSOP1	0x0139
-#define DP83867_RXFSOP2	0x013A
-#define DP83867_RXFSOP3	0x013B
-#define DP83867_IO_MUX_CFG	0x0170
-#define DP83867_SGMIICTL	0x00D3
-#define DP83867_10M_SGMII_CFG   0x016F
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -149,59 +112,6 @@ status_t PHY_DP83867IR_Init(phy_handle_t *handle, const phy_config_t *config)
     {
         return result;
     }
-
-    /* TX_FIFO DEPTH */
-    result = MDIO_Read(handle->mdioHandle, handle->phyAddr, PHY_PHYCTRL_REG, &regValue);
-    if (result != kStatus_Success)
-    {
-        return result;
-    }
-
-    regValue &= ~DP83867_PHYCR_TX_FIFO_DEPTH_MASK;
-	regValue |= (DP83867_PHYCR_FIFO_DEPTH_MAX << DP83867_PHYCR_TX_FIFO_DEPTH_SHIFT);
-
-    result = MDIO_Write(handle->mdioHandle, handle->phyAddr, PHY_PHYCTRL_REG, regValue);
-    if (result != kStatus_Success)
-    {
-        return result;
-    }
-
-	/* internal delay */
-	result = PHY_DP83867IR_MMD_Read(handle, DP83867_DEVADDR, DP83867_RGMIICTL, &regValue);
-    if (result != kStatus_Success)
-    {
-        return result;
-    }
-
-	regValue &= ~(DP83867_RGMII_TX_CLK_DELAY_EN | DP83867_RGMII_RX_CLK_DELAY_EN);
-	regValue |= (DP83867_RGMII_TX_CLK_DELAY_EN | DP83867_RGMII_RX_CLK_DELAY_EN);
-
-	regValue |= DP83867_RGMII_TX_CLK_DELAY_EN;
-
-	regValue |= DP83867_RGMII_RX_CLK_DELAY_EN;
-
-	result = PHY_DP83867IR_MMD_Write(handle, DP83867_DEVADDR, DP83867_RGMIICTL, regValue);
-    if (result != kStatus_Success)
-    {
-        return result;
-    }
-
-	regValue = 0;
-	regValue |= DP83867_RGMII_RX_CLK_DELAY_MAX;
-	regValue |= DP83867_RGMII_TX_CLK_DELAY_MAX <<
-			 DP83867_RGMII_TX_CLK_DELAY_SHIFT;
-
-	result = PHY_DP83867IR_MMD_Write(handle, DP83867_DEVADDR, DP83867_RGMIICTL, regValue);
-    if (result != kStatus_Success)
-    {
-        return result;
-    }
-	result = PHY_DP83867IR_MMD_Write(handle, DP83867_DEVADDR, DP83867_RGMIICTL, regValue);
-    if (result != kStatus_Success)
-    {
-        return result;
-    }
-
 
     if (config->autoNeg)
     {
