@@ -6,62 +6,62 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "fsl_codec_wm8960_adapter.h"
+#include "fsl_codec_tlv320aic3110_adapter.h"
 #include "fsl_codec_common.h"
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 /*! @brief module capability definition */
-#define HAL_WM8960_MODULE_CAPABILITY                                                                                   \
+#define HAL_TLV320AIC3110_MODULE_CAPABILITY                                                                                   \
     (kCODEC_SupportModuleADC | kCODEC_SupportModuleDAC | kCODEC_SupportModuleHeadphone | kCODEC_SupportModuleLineout | \
      kCODEC_SupportModuleSpeaker | kCODEC_SupportModuleMic | kCODEC_SupportModuleMixer | kCODEC_SupportModuleMicbias | \
      kCODEC_SupportModuleVref | kCODEC_SupportModuleLinein)
 
-#define HAL_WM8960_PLAY_CAPABILITY                                                                       \
+#define HAL_TLV320AIC3110_PLAY_CAPABILITY                                                                       \
     (kCODEC_SupportPlayChannelLeft0 | kCODEC_SupportPlayChannelRight0 | kCODEC_SupportPlayChannelLeft1 | \
      kCODEC_SupportPlayChannelRight1 | kCODEC_SupportPlaySourcePGA | kCODEC_SupportPlaySourceDAC |       \
      kCODEC_SupportPlaySourceInput)
 
-#define HAL_WM8960_VOLUME_CAPABILITY                                                                     \
+#define HAL_TLV320AIC3110_VOLUME_CAPABILITY                                                                     \
     (kCODEC_SupportPlayChannelLeft0 | kCODEC_SupportPlayChannelRight0 | kCODEC_SupportPlayChannelLeft1 | \
      kCODEC_SupportPlayChannelRight1 | kCODEC_VolumeDAC)
 
-#define HAL_WM8960_RECORD_CAPABILITY                                                                    \
+#define HAL_TLV320AIC3110_RECORD_CAPABILITY                                                                    \
     (kCODEC_SupportPlayChannelLeft0 | kCODEC_SupportPlayChannelLeft1 | kCODEC_SupportPlayChannelLeft2 | \
      kCODEC_SupportPlayChannelRight0 | kCODEC_SupportPlayChannelRight1 | kCODEC_SupportPlayChannelRight2)
 
-/*! @brief wm8960 map protocol */
-#define HAL_WM8960_MAP_PROTOCOL(protocol)                 \
+/*! @brief tlv320aic3110 map protocol */
+#define HAL_TLV320AIC3110_MAP_PROTOCOL(protocol)                 \
     ((protocol) == kCODEC_BusI2S ?                        \
-         kWM8960_BusI2S :                                 \
+         kTLV320AIC3110_BusI2S :                                 \
          (protocol) == kCODEC_BusLeftJustified ?          \
-         kWM8960_BusLeftJustified :                       \
+         kTLV320AIC3110_BusLeftJustified :                       \
          (protocol) == kCODEC_BusRightJustified ?         \
-         kWM8960_BusRightJustified :                      \
-         (protocol) == kCODEC_BusPCMA ? kWM8960_BusPCMA : \
-                                        (protocol) == kCODEC_BusPCMB ? kWM8960_BusPCMB : kWM8960_BusI2S)
+         kTLV320AIC3110_BusRightJustified :                      \
+         (protocol) == kCODEC_BusPCMA ? kTLV320AIC3110_BusPCMA : \
+                                        (protocol) == kCODEC_BusPCMB ? kTLV320AIC3110_BusPCMB : kTLV320AIC3110_BusI2S)
 
-/*! @brief wm8960 map module */
-#define HAL_WM8960_MAP_MODULE(module)                   \
+/*! @brief tlv320aic3110 map module */
+#define HAL_TLV320AIC3110_MAP_MODULE(module)                   \
     ((module) == (uint32_t)kCODEC_ModuleADC ?           \
-         kWM8960_ModuleADC :                            \
+         kTLV320AIC3110_ModuleADC :                            \
          (module) == (uint32_t)kCODEC_ModuleDAC ?       \
-         kWM8960_ModuleDAC :                            \
+         kTLV320AIC3110_ModuleDAC :                            \
          (module) == (uint32_t)kCODEC_ModuleVref ?      \
-         kWM8960_ModuleVREF :                           \
+         kTLV320AIC3110_ModuleVREF :                           \
          (module) == (uint32_t)kCODEC_ModuleHeadphone ? \
-         kWM8960_ModuleHP :                             \
+         kTLV320AIC3110_ModuleHP :                             \
          (module) == (uint32_t)kCODEC_ModuleMicbias ?   \
-         kWM8960_ModuleMICB :                           \
+         kTLV320AIC3110_ModuleMICB :                           \
          (module) == (uint32_t)kCODEC_ModuleMic ?       \
-         kWM8960_ModuleMIC :                            \
+         kTLV320AIC3110_ModuleMIC :                            \
          (module) == (uint32_t)kCODEC_ModuleLinein ?    \
-         kWM8960_ModuleLineIn :                         \
+         kTLV320AIC3110_ModuleLineIn :                         \
          (module) == (uint32_t)kCODEC_ModuleSpeaker ?   \
-         kWM8960_ModuleSpeaker :                        \
+         kTLV320AIC3110_ModuleSpeaker :                        \
          (module) == (uint32_t)kCODEC_ModuleMixer ?     \
-         kWM8960_ModuleOMIX :                           \
-         (module) == (uint32_t)kCODEC_ModuleLineout ? kWM8960_ModuleLineOut : kWM8960_ModuleADC)
+         kTLV320AIC3110_ModuleOMIX :                           \
+         (module) == (uint32_t)kCODEC_ModuleLineout ? kTLV320AIC3110_ModuleLineOut : kTLV320AIC3110_ModuleADC)
 
 /*******************************************************************************
  * Prototypes
@@ -70,11 +70,11 @@
 /*******************************************************************************
  * Variables
  ******************************************************************************/
-static const codec_capability_t s_wm8960_capability = {
-    .codecPlayCapability   = HAL_WM8960_PLAY_CAPABILITY,
-    .codecVolumeCapability = HAL_WM8960_VOLUME_CAPABILITY,
-    .codecModuleCapability = HAL_WM8960_MODULE_CAPABILITY,
-    .codecRecordCapability = HAL_WM8960_RECORD_CAPABILITY,
+static const codec_capability_t s_tlv320aic3110_capability = {
+    .codecPlayCapability   = HAL_TLV320AIC3110_PLAY_CAPABILITY,
+    .codecVolumeCapability = HAL_TLV320AIC3110_VOLUME_CAPABILITY,
+    .codecModuleCapability = HAL_TLV320AIC3110_MODULE_CAPABILITY,
+    .codecRecordCapability = HAL_TLV320AIC3110_RECORD_CAPABILITY,
 };
 /*******************************************************************************
  * Code
@@ -86,19 +86,19 @@ static const codec_capability_t s_wm8960_capability = {
  * param config codec configuration.
  * return kStatus_Success is success, else initial failed.
  */
-status_t HAL_CODEC_WM8960_Init(void *handle, void *config)
+status_t HAL_CODEC_TLV320AIC3110_Init(void *handle, void *config)
 {
     assert((config != NULL) && (handle != NULL));
 
     codec_config_t *codecConfig = (codec_config_t *)config;
 
-    wm8960_config_t *devConfig = (wm8960_config_t *)(codecConfig->codecDevConfig);
-    wm8960_handle_t *devHandle = (wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle));
+    tlv320aic3110_config_t *devConfig = (tlv320aic3110_config_t *)(codecConfig->codecDevConfig);
+    tlv320aic3110_handle_t *devHandle = (tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle));
 
-    ((codec_handle_t *)handle)->codecCapability = &s_wm8960_capability;
+    ((codec_handle_t *)handle)->codecCapability = &s_tlv320aic3110_capability;
 
     /* codec device initialization */
-    return WM8960_Init(devHandle, devConfig);
+    return TLV320AIC3110_Init(devHandle, devConfig);
 }
 
 /*!
@@ -107,11 +107,11 @@ status_t HAL_CODEC_WM8960_Init(void *handle, void *config)
  * param handle codec handle.
  * return kStatus_Success is success, else de-initial failed.
  */
-status_t HAL_CODEC_WM8960_Deinit(void *handle)
+status_t HAL_CODEC_TLV320AIC3110_Deinit(void *handle)
 {
     assert(handle != NULL);
 
-    return WM8960_Deinit((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)));
+    return TLV320AIC3110_Deinit((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)));
 }
 
 /*!
@@ -123,11 +123,11 @@ status_t HAL_CODEC_WM8960_Deinit(void *handle)
  * param bitWidth bit width.
  * return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_SetFormat(void *handle, uint32_t mclk, uint32_t sampleRate, uint32_t bitWidth)
+status_t HAL_CODEC_TLV320AIC3110_SetFormat(void *handle, uint32_t mclk, uint32_t sampleRate, uint32_t bitWidth)
 {
     assert(handle != NULL);
 
-    return WM8960_ConfigDataFormat((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)), mclk,
+    return TLV320AIC3110_ConfigDataFormat((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)), mclk,
                                    sampleRate, bitWidth);
 }
 
@@ -139,36 +139,36 @@ status_t HAL_CODEC_WM8960_SetFormat(void *handle, uint32_t mclk, uint32_t sample
  * param volume volume value, support 0 ~ 100, 0 is mute, 100 is the maximum volume value.
  * return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_SetVolume(void *handle, uint32_t playChannel, uint32_t volume)
+status_t HAL_CODEC_TLV320AIC3110_SetVolume(void *handle, uint32_t playChannel, uint32_t volume)
 {
     assert(handle != NULL);
 
     status_t retVal       = kStatus_Success;
     uint32_t mappedVolume = 0U;
 
-    if (((playChannel & (uint32_t)kWM8960_HeadphoneLeft) != 0U) ||
-        ((playChannel & (uint32_t)kWM8960_HeadphoneRight) != 0U))
+    if (((playChannel & (uint32_t)kTLV320AIC3110_HeadphoneLeft) != 0U) ||
+        ((playChannel & (uint32_t)kTLV320AIC3110_HeadphoneRight) != 0U))
     {
         /*
          * 0 is mute
          * 1 - 100 is mapped to 0x30 - 0x7F
          */
-        mappedVolume = (volume * (WM8960_HEADPHONE_MAX_VOLUME_vALUE - WM8960_HEADPHONE_MIN_VOLUME_vALUE)) / 100U +
-                       WM8960_HEADPHONE_MIN_VOLUME_vALUE;
-        retVal = WM8960_SetVolume((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
-                                  kWM8960_ModuleHP, mappedVolume);
+        mappedVolume = (volume * (TLV320AIC3110_HEADPHONE_MAX_VOLUME_vALUE - TLV320AIC3110_HEADPHONE_MIN_VOLUME_vALUE)) / 100U +
+                       TLV320AIC3110_HEADPHONE_MIN_VOLUME_vALUE;
+        retVal = TLV320AIC3110_SetVolume((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
+                                  kTLV320AIC3110_ModuleHP, mappedVolume);
     }
 
-    if (((playChannel & (uint32_t)kWM8960_SpeakerLeft) != 0U) || ((playChannel & (uint32_t)kWM8960_SpeakerRight) != 0U))
+    if (((playChannel & (uint32_t)kTLV320AIC3110_SpeakerLeft) != 0U) || ((playChannel & (uint32_t)kTLV320AIC3110_SpeakerRight) != 0U))
     {
         /*
          * 0 is mute
          * 1 - 100 is mapped to 0x30 - 0x7F
          */
-        mappedVolume = (volume * (WM8960_HEADPHONE_MAX_VOLUME_vALUE - WM8960_HEADPHONE_MIN_VOLUME_vALUE)) / 100U +
-                       WM8960_HEADPHONE_MIN_VOLUME_vALUE;
-        retVal = WM8960_SetVolume((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
-                                  kWM8960_ModuleSpeaker, mappedVolume);
+        mappedVolume = (volume * (TLV320AIC3110_HEADPHONE_MAX_VOLUME_vALUE - TLV320AIC3110_HEADPHONE_MIN_VOLUME_vALUE)) / 100U +
+                       TLV320AIC3110_HEADPHONE_MIN_VOLUME_vALUE;
+        retVal = TLV320AIC3110_SetVolume((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
+                                  kTLV320AIC3110_ModuleSpeaker, mappedVolume);
     }
 
     if ((playChannel & (uint32_t)kCODEC_VolumeDAC) != 0U)
@@ -177,10 +177,10 @@ status_t HAL_CODEC_WM8960_SetVolume(void *handle, uint32_t playChannel, uint32_t
          * 0 is mute
          * 0 - 100 is mapped to 0x00 - 0xFF
          */
-        mappedVolume = (volume * (WM8960_DAC_MAX_VOLUME_vALUE - 0U)) / 100U;
+        mappedVolume = (volume * (TLV320AIC3110_DAC_MAX_VOLUME_vALUE - 0U)) / 100U;
 
-        retVal = WM8960_SetVolume((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
-                                  kWM8960_ModuleDAC, mappedVolume);
+        retVal = TLV320AIC3110_SetVolume((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
+                                  kTLV320AIC3110_ModuleDAC, mappedVolume);
     }
 
     return retVal;
@@ -194,23 +194,23 @@ status_t HAL_CODEC_WM8960_SetVolume(void *handle, uint32_t playChannel, uint32_t
  * param isMute true is mute, false is unmute.
  * return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_SetMute(void *handle, uint32_t playChannel, bool isMute)
+status_t HAL_CODEC_TLV320AIC3110_SetMute(void *handle, uint32_t playChannel, bool isMute)
 {
     assert(handle != NULL);
 
     status_t retVal = kStatus_Success;
 
-    if (((playChannel & (uint32_t)kWM8960_HeadphoneLeft) != 0U) ||
-        ((playChannel & (uint32_t)kWM8960_HeadphoneRight) != 0U))
+    if (((playChannel & (uint32_t)kTLV320AIC3110_HeadphoneLeft) != 0U) ||
+        ((playChannel & (uint32_t)kTLV320AIC3110_HeadphoneRight) != 0U))
     {
-        retVal = WM8960_SetMute((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
-                                kWM8960_ModuleHP, isMute);
+        retVal = TLV320AIC3110_SetMute((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
+                                kTLV320AIC3110_ModuleHP, isMute);
     }
 
-    if (((playChannel & (uint32_t)kWM8960_SpeakerLeft) != 0U) || ((playChannel & (uint32_t)kWM8960_SpeakerRight) != 0U))
+    if (((playChannel & (uint32_t)kTLV320AIC3110_SpeakerLeft) != 0U) || ((playChannel & (uint32_t)kTLV320AIC3110_SpeakerRight) != 0U))
     {
-        retVal = WM8960_SetMute((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
-                                kWM8960_ModuleSpeaker, isMute);
+        retVal = TLV320AIC3110_SetMute((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
+                                kTLV320AIC3110_ModuleSpeaker, isMute);
     }
 
     return retVal;
@@ -224,12 +224,12 @@ status_t HAL_CODEC_WM8960_SetMute(void *handle, uint32_t playChannel, bool isMut
  * param powerOn true is power on, false is power down.
  * return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_SetPower(void *handle, uint32_t module, bool powerOn)
+status_t HAL_CODEC_TLV320AIC3110_SetPower(void *handle, uint32_t module, bool powerOn)
 {
     assert(handle != NULL);
 
-    return WM8960_SetModule((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
-                            HAL_WM8960_MAP_MODULE(module), powerOn);
+    return TLV320AIC3110_SetModule((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)),
+                            HAL_TLV320AIC3110_MAP_MODULE(module), powerOn);
 }
 
 /*!
@@ -243,7 +243,7 @@ status_t HAL_CODEC_WM8960_SetPower(void *handle, uint32_t module, bool powerOn)
 
  * return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_SetRecordChannel(void *handle, uint32_t leftRecordChannel, uint32_t rightRecordChannel)
+status_t HAL_CODEC_TLV320AIC3110_SetRecordChannel(void *handle, uint32_t leftRecordChannel, uint32_t rightRecordChannel)
 {
     return kStatus_CODEC_NotSupport;
 }
@@ -256,7 +256,7 @@ status_t HAL_CODEC_WM8960_SetRecordChannel(void *handle, uint32_t leftRecordChan
  *
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_SetRecord(void *handle, uint32_t recordSource)
+status_t HAL_CODEC_TLV320AIC3110_SetRecord(void *handle, uint32_t recordSource)
 {
     return kStatus_CODEC_NotSupport;
 }
@@ -269,11 +269,11 @@ status_t HAL_CODEC_WM8960_SetRecord(void *handle, uint32_t recordSource)
  *
  * return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_SetPlay(void *handle, uint32_t playSource)
+status_t HAL_CODEC_TLV320AIC3110_SetPlay(void *handle, uint32_t playSource)
 {
     assert(handle != NULL);
 
-    return WM8960_SetPlay((wm8960_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)), playSource);
+    return TLV320AIC3110_SetPlay((tlv320aic3110_handle_t *)((uintptr_t)(((codec_handle_t *)handle)->codecDevHandle)), playSource);
 }
 
 /*!
@@ -286,7 +286,7 @@ status_t HAL_CODEC_WM8960_SetPlay(void *handle, uint32_t playSource)
  *  codec specific driver for detail configurations.
  * return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_WM8960_ModuleControl(void *handle, uint32_t cmd, uint32_t data)
+status_t HAL_CODEC_TLV320AIC3110_ModuleControl(void *handle, uint32_t cmd, uint32_t data)
 {
     return kStatus_CODEC_NotSupport;
 }
