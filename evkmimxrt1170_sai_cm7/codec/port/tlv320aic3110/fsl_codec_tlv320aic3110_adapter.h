@@ -6,13 +6,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef _FSL_CODEC_TLV320AIC3110_ADAPTER_H_
-#define _FSL_CODEC_TLV320AIC3110_ADAPTER_H_
+#ifndef _FSL_CODEC_WM8960_ADAPTER_H_
+#define _FSL_CODEC_WM8960_ADAPTER_H_
 
 #include "fsl_tlv320aic3110.h"
 
 /*!
- * @addtogroup tlv320aic3110_adapter
+ * @addtogroup wm8960_adapter
  * @ingroup codec_common
  * @{
  */
@@ -21,7 +21,7 @@
  * Definitions
  ******************************************************************************/
 /*!@brief codec handler size */
-#define HAL_CODEC_TLV320AIC3110_HANDLER_SIZE (TLV320AIC3110_I2C_HANDLER_SIZE + 4)
+#define HAL_CODEC_WM8960_HANDLER_SIZE (WM8960_I2C_HANDLER_SIZE + 4)
 /*******************************************************************************
  * API
  ******************************************************************************/
@@ -36,7 +36,7 @@ extern "C" {
  * @param config codec configuration.
  * @return kStatus_Success is success, else initial failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_Init(void *handle, void *config);
+status_t HAL_CODEC_WM8960_Init(void *handle, void *config);
 
 /*!
  * @brief Codec de-initilization.
@@ -44,7 +44,7 @@ status_t HAL_CODEC_TLV320AIC3110_Init(void *handle, void *config);
  * @param handle codec handle.
  * @return kStatus_Success is success, else de-initial failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_Deinit(void *handle);
+status_t HAL_CODEC_WM8960_Deinit(void *handle);
 
 /*!
  * @brief set audio data format.
@@ -55,7 +55,7 @@ status_t HAL_CODEC_TLV320AIC3110_Deinit(void *handle);
  * @param bitWidth bit width.
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_SetFormat(void *handle, uint32_t mclk, uint32_t sampleRate, uint32_t bitWidth);
+status_t HAL_CODEC_WM8960_SetFormat(void *handle, uint32_t mclk, uint32_t sampleRate, uint32_t bitWidth);
 
 /*!
  * @brief set audio codec module volume.
@@ -65,7 +65,7 @@ status_t HAL_CODEC_TLV320AIC3110_SetFormat(void *handle, uint32_t mclk, uint32_t
  * @param volume volume value, support 0 ~ 100, 0 is mute, 100 is the maximum volume value.
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_SetVolume(void *handle, uint32_t playChannel, uint32_t volume);
+status_t HAL_CODEC_WM8960_SetVolume(void *handle, uint32_t playChannel, uint32_t volume);
 
 /*!
  * @brief set audio codec module mute.
@@ -75,7 +75,7 @@ status_t HAL_CODEC_TLV320AIC3110_SetVolume(void *handle, uint32_t playChannel, u
  * @param isMute true is mute, false is unmute.
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_SetMute(void *handle, uint32_t playChannel, bool isMute);
+status_t HAL_CODEC_WM8960_SetMute(void *handle, uint32_t playChannel, bool isMute);
 
 /*!
  * @brief set audio codec module power.
@@ -85,7 +85,7 @@ status_t HAL_CODEC_TLV320AIC3110_SetMute(void *handle, uint32_t playChannel, boo
  * @param powerOn true is power on, false is power down.
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_SetPower(void *handle, uint32_t module, bool powerOn);
+status_t HAL_CODEC_WM8960_SetPower(void *handle, uint32_t module, bool powerOn);
 
 /*!
  * @brief codec set record source.
@@ -95,7 +95,7 @@ status_t HAL_CODEC_TLV320AIC3110_SetPower(void *handle, uint32_t module, bool po
  *
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_SetRecord(void *handle, uint32_t recordSource);
+status_t HAL_CODEC_WM8960_SetRecord(void *handle, uint32_t recordSource);
 
 /*!
  * @brief codec set record channel.
@@ -108,7 +108,7 @@ status_t HAL_CODEC_TLV320AIC3110_SetRecord(void *handle, uint32_t recordSource);
 
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_SetRecordChannel(void *handle, uint32_t leftRecordChannel, uint32_t rightRecordChannel);
+status_t HAL_CODEC_WM8960_SetRecordChannel(void *handle, uint32_t leftRecordChannel, uint32_t rightRecordChannel);
 
 /*!
  * @brief codec set play source.
@@ -118,7 +118,7 @@ status_t HAL_CODEC_TLV320AIC3110_SetRecordChannel(void *handle, uint32_t leftRec
  *
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_SetPlay(void *handle, uint32_t playSource);
+status_t HAL_CODEC_WM8960_SetPlay(void *handle, uint32_t playSource);
 
 /*!
  * @brief codec module control.
@@ -133,7 +133,7 @@ status_t HAL_CODEC_TLV320AIC3110_SetPlay(void *handle, uint32_t playSource);
  *  codec specific driver for detail configurations.
  * @return kStatus_Success is success, else configure failed.
  */
-status_t HAL_CODEC_TLV320AIC3110_ModuleControl(void *handle, uint32_t cmd, uint32_t data);
+status_t HAL_CODEC_WM8960_ModuleControl(void *handle, uint32_t cmd, uint32_t data);
 
 #if !(defined CODEC_MULTI_ADAPTERS && CODEC_MULTI_ADAPTERS)
 /*!
@@ -145,7 +145,7 @@ status_t HAL_CODEC_TLV320AIC3110_ModuleControl(void *handle, uint32_t cmd, uint3
  */
 static inline status_t HAL_CODEC_Init(void *handle, void *config)
 {
-    return HAL_CODEC_TLV320AIC3110_Init(handle, config);
+    return HAL_CODEC_WM8960_Init(handle, config);
 }
 
 /*!
@@ -156,7 +156,7 @@ static inline status_t HAL_CODEC_Init(void *handle, void *config)
  */
 static inline status_t HAL_CODEC_Deinit(void *handle)
 {
-    return HAL_CODEC_TLV320AIC3110_Deinit(handle);
+    return HAL_CODEC_WM8960_Deinit(handle);
 }
 
 /*!
@@ -170,7 +170,7 @@ static inline status_t HAL_CODEC_Deinit(void *handle)
  */
 static inline status_t HAL_CODEC_SetFormat(void *handle, uint32_t mclk, uint32_t sampleRate, uint32_t bitWidth)
 {
-    return HAL_CODEC_TLV320AIC3110_SetFormat(handle, mclk, sampleRate, bitWidth);
+    return HAL_CODEC_WM8960_SetFormat(handle, mclk, sampleRate, bitWidth);
 }
 
 /*!
@@ -183,7 +183,7 @@ static inline status_t HAL_CODEC_SetFormat(void *handle, uint32_t mclk, uint32_t
  */
 static inline status_t HAL_CODEC_SetVolume(void *handle, uint32_t playChannel, uint32_t volume)
 {
-    return HAL_CODEC_TLV320AIC3110_SetVolume(handle, playChannel, volume);
+    return HAL_CODEC_WM8960_SetVolume(handle, playChannel, volume);
 }
 
 /*!
@@ -196,7 +196,7 @@ static inline status_t HAL_CODEC_SetVolume(void *handle, uint32_t playChannel, u
  */
 static inline status_t HAL_CODEC_SetMute(void *handle, uint32_t playChannel, bool isMute)
 {
-    return HAL_CODEC_TLV320AIC3110_SetMute(handle, playChannel, isMute);
+    return HAL_CODEC_WM8960_SetMute(handle, playChannel, isMute);
 }
 
 /*!
@@ -209,7 +209,7 @@ static inline status_t HAL_CODEC_SetMute(void *handle, uint32_t playChannel, boo
  */
 static inline status_t HAL_CODEC_SetPower(void *handle, uint32_t module, bool powerOn)
 {
-    return HAL_CODEC_TLV320AIC3110_SetPower(handle, module, powerOn);
+    return HAL_CODEC_WM8960_SetPower(handle, module, powerOn);
 }
 
 /*!
@@ -222,7 +222,7 @@ static inline status_t HAL_CODEC_SetPower(void *handle, uint32_t module, bool po
  */
 static inline status_t HAL_CODEC_SetRecord(void *handle, uint32_t recordSource)
 {
-    return HAL_CODEC_TLV320AIC3110_SetRecord(handle, recordSource);
+    return HAL_CODEC_WM8960_SetRecord(handle, recordSource);
 }
 
 /*!
@@ -238,7 +238,7 @@ static inline status_t HAL_CODEC_SetRecord(void *handle, uint32_t recordSource)
  */
 static inline status_t HAL_CODEC_SetRecordChannel(void *handle, uint32_t leftRecordChannel, uint32_t rightRecordChannel)
 {
-    return HAL_CODEC_TLV320AIC3110_SetRecordChannel(handle, leftRecordChannel, rightRecordChannel);
+    return HAL_CODEC_WM8960_SetRecordChannel(handle, leftRecordChannel, rightRecordChannel);
 }
 
 /*!
@@ -251,7 +251,7 @@ static inline status_t HAL_CODEC_SetRecordChannel(void *handle, uint32_t leftRec
  */
 static inline status_t HAL_CODEC_SetPlay(void *handle, uint32_t playSource)
 {
-    return HAL_CODEC_TLV320AIC3110_SetPlay(handle, playSource);
+    return HAL_CODEC_WM8960_SetPlay(handle, playSource);
 }
 
 /*!
@@ -269,7 +269,7 @@ static inline status_t HAL_CODEC_SetPlay(void *handle, uint32_t playSource)
  */
 static inline status_t HAL_CODEC_ModuleControl(void *handle, uint32_t cmd, uint32_t data)
 {
-    return HAL_CODEC_TLV320AIC3110_ModuleControl(handle, cmd, data);
+    return HAL_CODEC_WM8960_ModuleControl(handle, cmd, data);
 }
 #endif
 

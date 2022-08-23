@@ -12,7 +12,7 @@
 #include "clock_config.h"
 #include "board.h"
 #include "fsl_codec_common.h"
-#include "fsl_wm8960.h"
+#include "fsl_tlv320aic3110.h"
 #include "fsl_codec_adapter.h"
 #include "fsl_dmamux.h"
 /*******************************************************************************

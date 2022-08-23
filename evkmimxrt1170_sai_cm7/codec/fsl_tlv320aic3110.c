@@ -10,19 +10,19 @@
 /*******************************************************************************
  * Definitations
  ******************************************************************************/
-#define TLV320AIC3110_CHECK_RET(x, status)  \
+#define WM8960_CHECK_RET(x, status)  \
     (status) = (x);                  \
     if ((status) != kStatus_Success) \
     {                                \
         return (status);             \
     }
 
-/*! @brief TLV320AIC3110 f2 better performance range */
-#define TLV320AIC3110_PLL_F2_MIN_FREQ 90000000U
-#define TLV320AIC3110_PLL_F2_MAX_FREQ 100000000U
-/*! @brief TLV320AIC3110 PLLN range */
-#define TLV320AIC3110_PLL_N_MIN_VALUE 6U
-#define TLV320AIC3110_PLL_N_MAX_VALUE 12U
+/*! @brief WM8960 f2 better performance range */
+#define WM8960_PLL_F2_MIN_FREQ 90000000U
+#define WM8960_PLL_F2_MAX_FREQ 100000000U
+/*! @brief WM8960 PLLN range */
+#define WM8960_PLL_N_MIN_VALUE 6U
+#define WM8960_PLL_N_MAX_VALUE 12U
 /*******************************************************************************
  * Prototypes
  ******************************************************************************/
@@ -31,45 +31,45 @@
  * Variables
  ******************************************************************************/
 /*
- * tlv320aic3110 register cache
- * We can't read the TLV320AIC3110 register space when we are
+ * wm8960 register cache
+ * We can't read the WM8960 register space when we are
  * using 2 wire for device control, so we cache them instead.
  */
-static const uint16_t tlv320aic3110_reg[TLV320AIC3110_CACHEREGNUM] = {
+static const uint16_t wm8960_reg[WM8960_CACHEREGNUM] = {
     0x0097, 0x0097, 0x0000, 0x0000, 0x0000, 0x0008, 0x0000, 0x000a, 0x01c0, 0x0000, 0x00ff, 0x00ff, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x007b, 0x0100, 0x0032, 0x0000, 0x00c3, 0x00c3, 0x01c0, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0100, 0x0100, 0x0050, 0x0050, 0x0050, 0x0050, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0040, 0x0000, 0x0000, 0x0050, 0x0050, 0x0000, 0x0002, 0x0037, 0x004d, 0x0080, 0x0008, 0x0031, 0x0026, 0x00e9,
 };
 
-static uint16_t reg_cache[TLV320AIC3110_CACHEREGNUM];
+static uint16_t reg_cache[WM8960_CACHEREGNUM];
 /*******************************************************************************
  * Code
  ******************************************************************************/
-static status_t TLV320AIC3110_SetInternalPllConfig(
-    tlv320aic3110_handle_t *handle, uint32_t inputMclk, uint32_t outputClk, uint32_t sampleRate, uint32_t bitWidth)
+static status_t WM8960_SetInternalPllConfig(
+    wm8960_handle_t *handle, uint32_t inputMclk, uint32_t outputClk, uint32_t sampleRate, uint32_t bitWidth)
 {
     status_t ret   = kStatus_Success;
     uint32_t pllF2 = outputClk * 4U, pllPrescale = 0U, sysclkDiv = 1U, pllR = 0, pllN = 0, pllK = 0U, fracMode = 0U;
 
     /* disable PLL power */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, 1U, 0U), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_CLOCK1, 7U, 0U), ret);
+    WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, 1U, 0U), ret);
+    WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_CLOCK1, 7U, 0U), ret);
 
     pllN = pllF2 / inputMclk;
-    if (pllN < TLV320AIC3110_PLL_N_MIN_VALUE)
+    if (pllN < WM8960_PLL_N_MIN_VALUE)
     {
         inputMclk >>= 1U;
         pllPrescale = 1;
         pllN        = pllF2 / inputMclk;
-        if (pllN < TLV320AIC3110_PLL_N_MIN_VALUE)
+        if (pllN < WM8960_PLL_N_MIN_VALUE)
         {
             sysclkDiv = 2U;
             pllN      = (pllF2 * sysclkDiv) / inputMclk;
         }
     }
 
-    if ((pllN < TLV320AIC3110_PLL_N_MIN_VALUE) || (pllN > TLV320AIC3110_PLL_N_MAX_VALUE))
+    if ((pllN < WM8960_PLL_N_MIN_VALUE) || (pllN > WM8960_PLL_N_MAX_VALUE))
     {
         return kStatus_InvalidArgument;
     }
@@ -80,22 +80,22 @@ static status_t TLV320AIC3110_SetInternalPllConfig(
     {
         fracMode = 1U;
     }
-    TLV320AIC3110_CHECK_RET(
-        TLV320AIC3110_WriteReg(handle, TLV320AIC3110_PLL1,
+    WM8960_CHECK_RET(
+        WM8960_WriteReg(handle, WM8960_PLL1,
                         ((uint16_t)fracMode << 5U) | ((uint16_t)pllPrescale << 4U) | ((uint16_t)pllN & 0xFU)),
         ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_PLL2, (uint16_t)(pllK >> 16U) & 0xFFU), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_PLL3, (uint16_t)(pllK >> 8U) & 0xFFU), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_PLL4, (uint16_t)pllK & 0xFFU), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_PLL2, (uint16_t)(pllK >> 16U) & 0xFFU), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_PLL3, (uint16_t)(pllK >> 8U) & 0xFFU), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_PLL4, (uint16_t)pllK & 0xFFU), ret);
     /* enable PLL power */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, 1U, 1U), ret);
+    WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, 1U, 1U), ret);
 
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_CLOCK1, 7U, ((sysclkDiv == 1U ? 0U : sysclkDiv) << 1U) | 1U), ret);
+    WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_CLOCK1, 7U, ((sysclkDiv == 1U ? 0U : sysclkDiv) << 1U) | 1U), ret);
 
     return ret;
 }
 
-static status_t TLV320AIC3110_SetMasterClock(tlv320aic3110_handle_t *handle, uint32_t sysclk, uint32_t sampleRate, uint32_t bitWidth)
+static status_t WM8960_SetMasterClock(wm8960_handle_t *handle, uint32_t sysclk, uint32_t sampleRate, uint32_t bitWidth)
 {
     uint32_t bitClockDivider = 0U, regDivider = 0U;
     status_t ret = kStatus_Success;
@@ -151,14 +151,14 @@ static status_t TLV320AIC3110_SetMasterClock(tlv320aic3110_handle_t *handle, uin
     if (ret == kStatus_Success)
     {
         /* configure the master bit clock divider will be better */
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_CLOCK2, TLV320AIC3110_CLOCK2_BCLK_DIV_MASK, (uint16_t)regDivider),
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_CLOCK2, WM8960_CLOCK2_BCLK_DIV_MASK, (uint16_t)regDivider),
                          ret);
     }
 
     return ret;
 }
 
-status_t TLV320AIC3110_Init(tlv320aic3110_handle_t *handle, const tlv320aic3110_config_t *config)
+status_t WM8960_Init(wm8960_handle_t *handle, const wm8960_config_t *config)
 {
     status_t ret = kStatus_Success;
 
@@ -166,39 +166,39 @@ status_t TLV320AIC3110_Init(tlv320aic3110_handle_t *handle, const tlv320aic3110_
     uint32_t sysclk = config->format.mclk_HZ;
 
     /* i2c bus initialization */
-    if (CODEC_I2C_Init(handle->i2cHandle, config->i2cConfig.codecI2CInstance, TLV320AIC3110_I2C_BAUDRATE,
+    if (CODEC_I2C_Init(handle->i2cHandle, config->i2cConfig.codecI2CInstance, WM8960_I2C_BAUDRATE,
                        config->i2cConfig.codecI2CSourceClock) != (status_t)kStatus_HAL_I2cSuccess)
     {
         return kStatus_Fail;
     }
-    /* load tlv320aic3110 register map */
-    (void)memcpy(reg_cache, tlv320aic3110_reg, sizeof(tlv320aic3110_reg));
+    /* load wm8960 register map */
+    (void)memcpy(reg_cache, wm8960_reg, sizeof(wm8960_reg));
 
     /* Reset the codec */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RESET, 0x00), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RESET, 0x00), ret);
     /*
      * VMID=50K, Enable VREF, AINL, AINR, ADCL and ADCR
      * I2S_IN (bit 0), I2S_OUT (bit 1), DAP (bit 4), DAC (bit 5), ADC (bit 6) are powered on
      */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, 0xFE), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, 0xFE), ret);
     /*
      * Enable DACL, DACR, LOUT1, ROUT1, PLL down, SPKL, SPKR
      */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER2, 0x1F8), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER2, 0x1F8), ret);
     /*
      * Enable left and right channel input PGA, left and right output mixer
      */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER3, 0x3C), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER3, 0x3C), ret);
     /* ADC and DAC uses same clock */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_IFACE2, 0x40), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_IFACE2, 0x40), ret);
     /* set data route */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetDataRoute(handle, config->route), ret);
+    WM8960_CHECK_RET(WM8960_SetDataRoute(handle, config->route), ret);
     /* set data protocol */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetProtocol(handle, config->bus), ret);
+    WM8960_CHECK_RET(WM8960_SetProtocol(handle, config->bus), ret);
 
-    if ((config->masterClock.sysclkSource == kTLV320AIC3110_SysClkSourceInternalPLL))
+    if ((config->masterClock.sysclkSource == kWM8960_SysClkSourceInternalPLL))
     {
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetInternalPllConfig(handle, sysclk, config->masterClock.sysclkFreq,
+        WM8960_CHECK_RET(WM8960_SetInternalPllConfig(handle, sysclk, config->masterClock.sysclkFreq,
                                                      config->format.sampleRate, config->format.bitWidth),
                          ret);
         sysclk = config->masterClock.sysclkFreq;
@@ -206,154 +206,154 @@ status_t TLV320AIC3110_Init(tlv320aic3110_handle_t *handle, const tlv320aic3110_
     /* set master or slave */
     if (config->master_slave)
     {
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetMasterClock(handle, sysclk, config->format.sampleRate, config->format.bitWidth),
+        WM8960_CHECK_RET(WM8960_SetMasterClock(handle, sysclk, config->format.sampleRate, config->format.bitWidth),
                          ret);
     }
-    TLV320AIC3110_SetMasterSlave(handle, config->master_slave);
+    WM8960_SetMasterSlave(handle, config->master_slave);
     /* select left input */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetLeftInput(handle, config->leftInputSource), ret);
+    WM8960_CHECK_RET(WM8960_SetLeftInput(handle, config->leftInputSource), ret);
     /* select right input */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetRightInput(handle, config->rightInputSource), ret);
+    WM8960_CHECK_RET(WM8960_SetRightInput(handle, config->rightInputSource), ret);
     /* speaker power */
     if (config->enableSpeaker)
     {
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleSpeaker, true), ret);
+        WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleSpeaker, true), ret);
     }
 
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ADDCTL1, 0x0C0), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ADDCTL4, 0x40), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ADDCTL1, 0x0C0), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ADDCTL4, 0x40), ret);
 
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_BYPASS1, 0x0), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_BYPASS2, 0x0), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_BYPASS1, 0x0), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_BYPASS2, 0x0), ret);
     /*
      * ADC volume, 0dB
      */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LADC, 0x1C3), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RADC, 0x1C3), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LADC, 0x1C3), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RADC, 0x1C3), ret);
 
     /*
      * Digital DAC volume, -15.5dB
      */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LDAC, 0x1E0), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RDAC, 0x1E0), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LDAC, 0x1E0), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RDAC, 0x1E0), ret);
 
     /*
      * Headphone volume, LOUT1 and ROUT1, -10dB
      */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT1, 0x16F), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT1, 0x16F), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT1, 0x16F), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT1, 0x16F), ret);
 
     /* speaker volume 6dB */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT2, 0x1ff), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT2, 0x1ff), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT2, 0x1ff), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT2, 0x1ff), ret);
     /* enable class D output */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_CLASSD1, 0xf7), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_CLASSD1, 0xf7), ret);
 
     /* Unmute DAC. */
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_DACCTL1, 0x0000), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINVOL, 0x117), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINVOL, 0x117), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_DACCTL1, 0x0000), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINVOL, 0x117), ret);
+    WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINVOL, 0x117), ret);
 
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_ConfigDataFormat(handle, sysclk, config->format.sampleRate, config->format.bitWidth), ret);
+    WM8960_CHECK_RET(WM8960_ConfigDataFormat(handle, sysclk, config->format.sampleRate, config->format.bitWidth), ret);
 
     return ret;
 }
 
-status_t TLV320AIC3110_Deinit(tlv320aic3110_handle_t *handle)
+status_t WM8960_Deinit(wm8960_handle_t *handle)
 {
     status_t ret = kStatus_Success;
 
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleADC, false), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleDAC, false), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleVREF, false), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleLineIn, false), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleLineOut, false), ret);
-    TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleSpeaker, false), ret);
-    TLV320AIC3110_CHECK_RET(CODEC_I2C_Deinit(handle->i2cHandle), ret);
+    WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleADC, false), ret);
+    WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleDAC, false), ret);
+    WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleVREF, false), ret);
+    WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleLineIn, false), ret);
+    WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleLineOut, false), ret);
+    WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleSpeaker, false), ret);
+    WM8960_CHECK_RET(CODEC_I2C_Deinit(handle->i2cHandle), ret);
 
     return ret;
 }
 
-void TLV320AIC3110_SetMasterSlave(tlv320aic3110_handle_t *handle, bool master)
+void WM8960_SetMasterSlave(wm8960_handle_t *handle, bool master)
 {
     if (master)
     {
-        (void)TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_IFACE1, TLV320AIC3110_IFACE1_MS_MASK, TLV320AIC3110_IFACE1_MS(TLV320AIC3110_IFACE1_MASTER));
+        (void)WM8960_ModifyReg(handle, WM8960_IFACE1, WM8960_IFACE1_MS_MASK, WM8960_IFACE1_MS(WM8960_IFACE1_MASTER));
     }
     else
     {
-        (void)TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_IFACE1, TLV320AIC3110_IFACE1_MS_MASK, TLV320AIC3110_IFACE1_MS(TLV320AIC3110_IFACE1_SLAVE));
+        (void)WM8960_ModifyReg(handle, WM8960_IFACE1, WM8960_IFACE1_MS_MASK, WM8960_IFACE1_MS(WM8960_IFACE1_SLAVE));
     }
 }
 
-status_t TLV320AIC3110_SetModule(tlv320aic3110_handle_t *handle, tlv320aic3110_module_t module, bool isEnabled)
+status_t WM8960_SetModule(wm8960_handle_t *handle, wm8960_module_t module, bool isEnabled)
 {
     status_t ret = kStatus_Success;
     switch (module)
     {
-        case kTLV320AIC3110_ModuleADC:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER1, TLV320AIC3110_POWER1_ADCL_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER1_ADCL_SHIFT)),
+        case kWM8960_ModuleADC:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER1, WM8960_POWER1_ADCL_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER1_ADCL_SHIFT)),
                              ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER1, TLV320AIC3110_POWER1_ADCR_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER1_ADCR_SHIFT)),
-                             ret);
-            break;
-        case kTLV320AIC3110_ModuleDAC:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, TLV320AIC3110_POWER2_DACL_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER2_DACL_SHIFT)),
-                             ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, TLV320AIC3110_POWER2_DACR_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER2_DACR_SHIFT)),
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER1, WM8960_POWER1_ADCR_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER1_ADCR_SHIFT)),
                              ret);
             break;
-        case kTLV320AIC3110_ModuleVREF:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER1, TLV320AIC3110_POWER1_VREF_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER1_VREF_SHIFT)),
+        case kWM8960_ModuleDAC:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, WM8960_POWER2_DACL_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER2_DACL_SHIFT)),
+                             ret);
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, WM8960_POWER2_DACR_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER2_DACR_SHIFT)),
                              ret);
             break;
-        case kTLV320AIC3110_ModuleLineIn:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER1, TLV320AIC3110_POWER1_AINL_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER1_AINL_SHIFT)),
-                             ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER1, TLV320AIC3110_POWER1_AINR_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER1_AINR_SHIFT)),
-                             ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER3, TLV320AIC3110_POWER3_LMIC_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER3_LMIC_SHIFT)),
-                             ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER3, TLV320AIC3110_POWER3_RMIC_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER3_RMIC_SHIFT)),
+        case kWM8960_ModuleVREF:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER1, WM8960_POWER1_VREF_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER1_VREF_SHIFT)),
                              ret);
             break;
-        case kTLV320AIC3110_ModuleLineOut:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, TLV320AIC3110_POWER2_LOUT1_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER2_LOUT1_SHIFT)),
+        case kWM8960_ModuleLineIn:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER1, WM8960_POWER1_AINL_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER1_AINL_SHIFT)),
                              ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, TLV320AIC3110_POWER2_ROUT1_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER2_ROUT1_SHIFT)),
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER1, WM8960_POWER1_AINR_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER1_AINR_SHIFT)),
+                             ret);
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER3, WM8960_POWER3_LMIC_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER3_LMIC_SHIFT)),
+                             ret);
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER3, WM8960_POWER3_RMIC_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER3_RMIC_SHIFT)),
                              ret);
             break;
-        case kTLV320AIC3110_ModuleMICB:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER1, TLV320AIC3110_POWER1_MICB_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER1_MICB_SHIFT)),
+        case kWM8960_ModuleLineOut:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, WM8960_POWER2_LOUT1_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER2_LOUT1_SHIFT)),
+                             ret);
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, WM8960_POWER2_ROUT1_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER2_ROUT1_SHIFT)),
                              ret);
             break;
-        case kTLV320AIC3110_ModuleSpeaker:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, TLV320AIC3110_POWER2_SPKL_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER2_SPKL_SHIFT)),
+        case kWM8960_ModuleMICB:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER1, WM8960_POWER1_MICB_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER1_MICB_SHIFT)),
                              ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER2, TLV320AIC3110_POWER2_SPKR_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER2_SPKR_SHIFT)),
-                             ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_CLASSD1, 0xF7), ret);
             break;
-        case kTLV320AIC3110_ModuleOMIX:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER3, TLV320AIC3110_POWER3_LOMIX_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER3_LOMIX_SHIFT)),
+        case kWM8960_ModuleSpeaker:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, WM8960_POWER2_SPKL_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER2_SPKL_SHIFT)),
                              ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_POWER3, TLV320AIC3110_POWER3_ROMIX_MASK,
-                                              ((uint16_t)isEnabled << TLV320AIC3110_POWER3_ROMIX_SHIFT)),
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER2, WM8960_POWER2_SPKR_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER2_SPKR_SHIFT)),
+                             ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_CLASSD1, 0xF7), ret);
+            break;
+        case kWM8960_ModuleOMIX:
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER3, WM8960_POWER3_LOMIX_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER3_LOMIX_SHIFT)),
+                             ret);
+            WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_POWER3, WM8960_POWER3_ROMIX_MASK,
+                                              ((uint16_t)isEnabled << WM8960_POWER3_ROMIX_SHIFT)),
                              ret);
             break;
         default:
@@ -363,66 +363,66 @@ status_t TLV320AIC3110_SetModule(tlv320aic3110_handle_t *handle, tlv320aic3110_m
     return ret;
 }
 
-status_t TLV320AIC3110_SetDataRoute(tlv320aic3110_handle_t *handle, tlv320aic3110_route_t route)
+status_t WM8960_SetDataRoute(wm8960_handle_t *handle, wm8960_route_t route)
 {
     status_t ret = kStatus_Success;
     switch (route)
     {
-        case kTLV320AIC3110_RouteBypass:
+        case kWM8960_RouteBypass:
             /* Bypass means from line-in to HP*/
             /*
              * Left LINPUT3 to left output mixer, LINPUT3 left output mixer volume = 0dB
              */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUTMIX, 0x80), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUTMIX, 0x80), ret);
 
             /*
              * Right RINPUT3 to right output mixer, RINPUT3 right output mixer volume = 0dB
              */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUTMIX, 0x80), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUTMIX, 0x80), ret);
             break;
-        case kTLV320AIC3110_RoutePlayback:
+        case kWM8960_RoutePlayback:
             /* Data route I2S_IN-> DAC-> HP */
             /*
              * Left DAC to left output mixer, LINPUT3 left output mixer volume = 0dB
              */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUTMIX, 0x100), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUTMIX, 0x100), ret);
 
             /*
              * Right DAC to right output mixer, RINPUT3 right output mixer volume = 0dB
              */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUTMIX, 0x100), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER3, 0x0C), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUTMIX, 0x100), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER3, 0x0C), ret);
             /* Set power for DAC */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleDAC, true), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleOMIX, true), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleLineOut, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleDAC, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleOMIX, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleLineOut, true), ret);
             break;
-        case kTLV320AIC3110_RoutePlaybackandRecord:
+        case kWM8960_RoutePlaybackandRecord:
             /*
              * Left DAC to left output mixer, LINPUT3 left output mixer volume = 0dB
              */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUTMIX, 0x100), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUTMIX, 0x100), ret);
 
             /*
              * Right DAC to right output mixer, RINPUT3 right output mixer volume = 0dB
              */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUTMIX, 0x100), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER3, 0x3C), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleDAC, true), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleADC, true), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleLineIn, true), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleOMIX, true), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleLineOut, true), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUTMIX, 0x100), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER3, 0x3C), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleDAC, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleADC, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleLineIn, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleOMIX, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleLineOut, true), ret);
             break;
-        case kTLV320AIC3110_RouteRecord:
+        case kWM8960_RouteRecord:
             /* LINE_IN->ADC->I2S_OUT */
             /*
              * Left and right input boost, LIN3BOOST and RIN3BOOST = 0dB
              */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER3, 0x30), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER3, 0x30), ret);
             /* Power up ADC and AIN */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleLineIn, true), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_SetModule(handle, kTLV320AIC3110_ModuleADC, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleLineIn, true), ret);
+            WM8960_CHECK_RET(WM8960_SetModule(handle, kWM8960_ModuleADC, true), ret);
             break;
         default:
             ret = kStatus_InvalidArgument;
@@ -431,55 +431,55 @@ status_t TLV320AIC3110_SetDataRoute(tlv320aic3110_handle_t *handle, tlv320aic311
     return ret;
 }
 
-status_t TLV320AIC3110_SetLeftInput(tlv320aic3110_handle_t *handle, tlv320aic3110_input_t input)
+status_t WM8960_SetLeftInput(wm8960_handle_t *handle, wm8960_input_t input)
 {
     status_t ret = kStatus_Success;
     uint16_t val = 0;
 
     switch (input)
     {
-        case kTLV320AIC3110_InputClosed:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val &= (uint16_t) ~(TLV320AIC3110_POWER1_AINL_MASK | TLV320AIC3110_POWER1_ADCL_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
+        case kWM8960_InputClosed:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val &= (uint16_t) ~(WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
             break;
-        case kTLV320AIC3110_InputSingleEndedMic:
+        case kWM8960_InputSingleEndedMic:
             /* Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINL_MASK | TLV320AIC3110_POWER1_ADCL_MASK | TLV320AIC3110_POWER1_MICB_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINPATH, 0x138), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINVOL, 0x117), ret);
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK | WM8960_POWER1_MICB_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINPATH, 0x138), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINVOL, 0x117), ret);
             break;
-        case kTLV320AIC3110_InputDifferentialMicInput2:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINL_MASK | TLV320AIC3110_POWER1_ADCL_MASK | TLV320AIC3110_POWER1_MICB_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINPATH, 0x178), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINVOL, 0x117), ret);
+        case kWM8960_InputDifferentialMicInput2:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK | WM8960_POWER1_MICB_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINPATH, 0x178), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINVOL, 0x117), ret);
             break;
-        case kTLV320AIC3110_InputDifferentialMicInput3:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINL_MASK | TLV320AIC3110_POWER1_ADCL_MASK | TLV320AIC3110_POWER1_MICB_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINPATH, 0x1B8), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINVOL, 0x117), ret);
+        case kWM8960_InputDifferentialMicInput3:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK | WM8960_POWER1_MICB_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINPATH, 0x1B8), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINVOL, 0x117), ret);
             break;
-        case kTLV320AIC3110_InputLineINPUT2:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINL_MASK | TLV320AIC3110_POWER1_ADCL_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_INBMIX1, &val), ret);
+        case kWM8960_InputLineINPUT2:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_INBMIX1, &val), ret);
             val |= 0xEU;
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_INBMIX1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_INBMIX1, val), ret);
             break;
-        case kTLV320AIC3110_InputLineINPUT3:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINL_MASK | TLV320AIC3110_POWER1_ADCL_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_INBMIX1, &val), ret);
+        case kWM8960_InputLineINPUT3:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINL_MASK | WM8960_POWER1_ADCL_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_INBMIX1, &val), ret);
             val |= 0x70U;
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_INBMIX1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_INBMIX1, val), ret);
             break;
         default:
             ret = kStatus_InvalidArgument;
@@ -489,55 +489,55 @@ status_t TLV320AIC3110_SetLeftInput(tlv320aic3110_handle_t *handle, tlv320aic311
     return ret;
 }
 
-status_t TLV320AIC3110_SetRightInput(tlv320aic3110_handle_t *handle, tlv320aic3110_input_t input)
+status_t WM8960_SetRightInput(wm8960_handle_t *handle, wm8960_input_t input)
 {
     status_t ret = kStatus_Success;
     uint16_t val = 0;
 
     switch (input)
     {
-        case kTLV320AIC3110_InputClosed:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val &= (uint16_t) ~(TLV320AIC3110_POWER1_AINR_MASK | TLV320AIC3110_POWER1_ADCR_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
+        case kWM8960_InputClosed:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val &= (uint16_t) ~(WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
             break;
-        case kTLV320AIC3110_InputSingleEndedMic:
+        case kWM8960_InputSingleEndedMic:
             /* Only LMN1 enabled, LMICBOOST to 13db, LMIC2B enabled */
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINR_MASK | TLV320AIC3110_POWER1_ADCR_MASK | TLV320AIC3110_POWER1_MICB_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINPATH, 0x138), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINVOL, 0x117), ret);
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK | WM8960_POWER1_MICB_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINPATH, 0x138), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINVOL, 0x117), ret);
             break;
-        case kTLV320AIC3110_InputDifferentialMicInput2:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINR_MASK | TLV320AIC3110_POWER1_ADCR_MASK | TLV320AIC3110_POWER1_MICB_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINPATH, 0x178), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINVOL, 0x117), ret);
+        case kWM8960_InputDifferentialMicInput2:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK | WM8960_POWER1_MICB_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINPATH, 0x178), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINVOL, 0x117), ret);
             break;
-        case kTLV320AIC3110_InputDifferentialMicInput3:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINR_MASK | TLV320AIC3110_POWER1_ADCR_MASK | TLV320AIC3110_POWER1_MICB_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINPATH, 0x1B8), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINVOL, 0x117), ret);
+        case kWM8960_InputDifferentialMicInput3:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK | WM8960_POWER1_MICB_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINPATH, 0x1B8), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINVOL, 0x117), ret);
             break;
-        case kTLV320AIC3110_InputLineINPUT2:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINR_MASK | TLV320AIC3110_POWER1_ADCR_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_INBMIX2, &val), ret);
+        case kWM8960_InputLineINPUT2:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_INBMIX2, &val), ret);
             val |= 0xEU;
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_INBMIX2, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_INBMIX2, val), ret);
             break;
-        case kTLV320AIC3110_InputLineINPUT3:
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_POWER1, &val), ret);
-            val |= (TLV320AIC3110_POWER1_AINR_MASK | TLV320AIC3110_POWER1_ADCR_MASK);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_POWER1, val), ret);
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_ReadReg(TLV320AIC3110_INBMIX2, &val), ret);
+        case kWM8960_InputLineINPUT3:
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_POWER1, &val), ret);
+            val |= (WM8960_POWER1_AINR_MASK | WM8960_POWER1_ADCR_MASK);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_POWER1, val), ret);
+            WM8960_CHECK_RET(WM8960_ReadReg(WM8960_INBMIX2, &val), ret);
             val |= 0x70U;
-            TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_INBMIX2, val), ret);
+            WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_INBMIX2, val), ret);
             break;
         default:
             ret = kStatus_InvalidArgument;
@@ -547,19 +547,19 @@ status_t TLV320AIC3110_SetRightInput(tlv320aic3110_handle_t *handle, tlv320aic31
     return ret;
 }
 
-status_t TLV320AIC3110_SetProtocol(tlv320aic3110_handle_t *handle, tlv320aic3110_protocol_t protocol)
+status_t WM8960_SetProtocol(wm8960_handle_t *handle, wm8960_protocol_t protocol)
 {
-    return TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_IFACE1, TLV320AIC3110_IFACE1_FORMAT_MASK | TLV320AIC3110_IFACE1_LRP_MASK,
+    return WM8960_ModifyReg(handle, WM8960_IFACE1, WM8960_IFACE1_FORMAT_MASK | WM8960_IFACE1_LRP_MASK,
                             (uint16_t)protocol);
 }
 
-status_t TLV320AIC3110_SetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_module_t module, uint32_t volume)
+status_t WM8960_SetVolume(wm8960_handle_t *handle, wm8960_module_t module, uint32_t volume)
 {
     uint16_t vol = 0;
     status_t ret = kStatus_Success;
     switch (module)
     {
-        case kTLV320AIC3110_ModuleADC:
+        case kWM8960_ModuleADC:
             if (volume > 255U)
             {
                 ret = kStatus_InvalidArgument;
@@ -567,15 +567,15 @@ status_t TLV320AIC3110_SetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_m
             else
             {
                 vol = (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LADC, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RADC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LADC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RADC, vol), ret);
                 /* Update volume */
                 vol = (uint16_t)(0x100U | volume);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LADC, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RADC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LADC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RADC, vol), ret);
             }
             break;
-        case kTLV320AIC3110_ModuleDAC:
+        case kWM8960_ModuleDAC:
             if (volume > 255U)
             {
                 ret = kStatus_InvalidArgument;
@@ -583,14 +583,14 @@ status_t TLV320AIC3110_SetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_m
             else
             {
                 vol = (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LDAC, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RDAC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LDAC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RDAC, vol), ret);
                 vol = 0x100U | (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LDAC, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RDAC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LDAC, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RDAC, vol), ret);
             }
             break;
-        case kTLV320AIC3110_ModuleHP:
+        case kWM8960_ModuleHP:
             if (volume > 0x7FU)
             {
                 ret = kStatus_InvalidArgument;
@@ -598,14 +598,14 @@ status_t TLV320AIC3110_SetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_m
             else
             {
                 vol = (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT1, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT1, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT1, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT1, vol), ret);
                 vol = 0x100U | (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT1, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT1, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT1, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT1, vol), ret);
             }
             break;
-        case kTLV320AIC3110_ModuleLineIn:
+        case kWM8960_ModuleLineIn:
             if (volume > 0x3FU)
             {
                 ret = kStatus_InvalidArgument;
@@ -613,14 +613,14 @@ status_t TLV320AIC3110_SetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_m
             else
             {
                 vol = (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINVOL, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINVOL, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINVOL, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINVOL, vol), ret);
                 vol = 0x100U | (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LINVOL, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RINVOL, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LINVOL, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RINVOL, vol), ret);
             }
             break;
-        case kTLV320AIC3110_ModuleSpeaker:
+        case kWM8960_ModuleSpeaker:
             if (volume > 0x7FU)
             {
                 ret = kStatus_InvalidArgument;
@@ -628,11 +628,11 @@ status_t TLV320AIC3110_SetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_m
             else
             {
                 vol = (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT2, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT2, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT2, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT2, vol), ret);
                 vol = 0x100U | (uint16_t)volume;
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT2, vol), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT2, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT2, vol), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT2, vol), ret);
             }
             break;
         default:
@@ -642,26 +642,26 @@ status_t TLV320AIC3110_SetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_m
     return ret;
 }
 
-uint32_t TLV320AIC3110_GetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_module_t module)
+uint32_t WM8960_GetVolume(wm8960_handle_t *handle, wm8960_module_t module)
 {
     uint16_t vol = 0;
 
     switch (module)
     {
-        case kTLV320AIC3110_ModuleADC:
-            (void)TLV320AIC3110_ReadReg(TLV320AIC3110_LADC, &vol);
+        case kWM8960_ModuleADC:
+            (void)WM8960_ReadReg(WM8960_LADC, &vol);
             vol &= 0xFFU;
             break;
-        case kTLV320AIC3110_ModuleDAC:
-            (void)TLV320AIC3110_ReadReg(TLV320AIC3110_LDAC, &vol);
+        case kWM8960_ModuleDAC:
+            (void)WM8960_ReadReg(WM8960_LDAC, &vol);
             vol &= 0xFFU;
             break;
-        case kTLV320AIC3110_ModuleHP:
-            (void)TLV320AIC3110_ReadReg(TLV320AIC3110_LOUT1, &vol);
+        case kWM8960_ModuleHP:
+            (void)WM8960_ReadReg(WM8960_LOUT1, &vol);
             vol &= 0x7FU;
             break;
-        case kTLV320AIC3110_ModuleLineOut:
-            (void)TLV320AIC3110_ReadReg(TLV320AIC3110_LINVOL, &vol);
+        case kWM8960_ModuleLineOut:
+            (void)WM8960_ReadReg(WM8960_LINVOL, &vol);
             vol &= 0x3FU;
             break;
         default:
@@ -671,71 +671,71 @@ uint32_t TLV320AIC3110_GetVolume(tlv320aic3110_handle_t *handle, tlv320aic3110_m
     return vol;
 }
 
-status_t TLV320AIC3110_SetMute(tlv320aic3110_handle_t *handle, tlv320aic3110_module_t module, bool isEnabled)
+status_t WM8960_SetMute(wm8960_handle_t *handle, wm8960_module_t module, bool isEnabled)
 {
     status_t ret = kStatus_Success;
     switch (module)
     {
-        case kTLV320AIC3110_ModuleADC:
+        case kWM8960_ModuleADC:
             /*
              * Digital Mute
              */
             if (isEnabled)
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LADC, 0x100), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RADC, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LADC, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RADC, 0x100), ret);
             }
             else
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LADC, 0x1C3), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RADC, 0x1C3), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LADC, 0x1C3), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RADC, 0x1C3), ret);
             }
             break;
-        case kTLV320AIC3110_ModuleDAC:
+        case kWM8960_ModuleDAC:
             /*
              * Digital mute
              */
             if (isEnabled)
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LDAC, 0x100), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RDAC, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LDAC, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RDAC, 0x100), ret);
             }
             else
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LDAC, 0x1FF), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_RDAC, 0x1FF), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LDAC, 0x1FF), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_RDAC, 0x1FF), ret);
             }
             break;
-        case kTLV320AIC3110_ModuleHP:
+        case kWM8960_ModuleHP:
             /*
              * Analog mute
              */
             if (isEnabled)
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT1, 0x100), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT1, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT1, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT1, 0x100), ret);
             }
             else
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT1, 0x16F), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT1, 0x16F), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT1, 0x16F), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT1, 0x16F), ret);
             }
             break;
 
-        case kTLV320AIC3110_ModuleSpeaker:
+        case kWM8960_ModuleSpeaker:
             if (isEnabled)
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT2, 0x100), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT2, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT2, 0x100), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT2, 0x100), ret);
             }
             else
             {
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_LOUT2, 0x16F), ret);
-                TLV320AIC3110_CHECK_RET(TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ROUT2, 0x16f), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_LOUT2, 0x16F), ret);
+                WM8960_CHECK_RET(WM8960_WriteReg(handle, WM8960_ROUT2, 0x16f), ret);
             }
             break;
 
-        case kTLV320AIC3110_ModuleLineOut:
+        case kWM8960_ModuleLineOut:
             break;
         default:
             ret = kStatus_InvalidArgument;
@@ -744,7 +744,7 @@ status_t TLV320AIC3110_SetMute(tlv320aic3110_handle_t *handle, tlv320aic3110_mod
     return ret;
 }
 
-status_t TLV320AIC3110_ConfigDataFormat(tlv320aic3110_handle_t *handle, uint32_t sysclk, uint32_t sample_rate, uint32_t bits)
+status_t WM8960_ConfigDataFormat(wm8960_handle_t *handle, uint32_t sysclk, uint32_t sample_rate, uint32_t bits)
 {
     status_t retval  = kStatus_Success;
     uint32_t divider = 0;
@@ -765,7 +765,7 @@ status_t TLV320AIC3110_ConfigDataFormat(tlv320aic3110_handle_t *handle, uint32_t
         return kStatus_InvalidArgument;
     }
 
-    retval = TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_CLOCK1, 0x1F8U, val);
+    retval = WM8960_ModifyReg(handle, WM8960_CLOCK1, 0x1F8U, val);
     if (retval != kStatus_Success)
     {
         return retval;
@@ -777,20 +777,20 @@ status_t TLV320AIC3110_ConfigDataFormat(tlv320aic3110_handle_t *handle, uint32_t
     switch (bits)
     {
         case 16:
-            retval = TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_IFACE1, TLV320AIC3110_IFACE1_WL_MASK,
-                                      TLV320AIC3110_IFACE1_WL(TLV320AIC3110_IFACE1_WL_16BITS));
+            retval = WM8960_ModifyReg(handle, WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
+                                      WM8960_IFACE1_WL(WM8960_IFACE1_WL_16BITS));
             break;
         case 20:
-            retval = TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_IFACE1, TLV320AIC3110_IFACE1_WL_MASK,
-                                      TLV320AIC3110_IFACE1_WL(TLV320AIC3110_IFACE1_WL_20BITS));
+            retval = WM8960_ModifyReg(handle, WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
+                                      WM8960_IFACE1_WL(WM8960_IFACE1_WL_20BITS));
             break;
         case 24:
-            retval = TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_IFACE1, TLV320AIC3110_IFACE1_WL_MASK,
-                                      TLV320AIC3110_IFACE1_WL(TLV320AIC3110_IFACE1_WL_24BITS));
+            retval = WM8960_ModifyReg(handle, WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
+                                      WM8960_IFACE1_WL(WM8960_IFACE1_WL_24BITS));
             break;
         case 32:
-            retval = TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_IFACE1, TLV320AIC3110_IFACE1_WL_MASK,
-                                      TLV320AIC3110_IFACE1_WL(TLV320AIC3110_IFACE1_WL_32BITS));
+            retval = WM8960_ModifyReg(handle, WM8960_IFACE1, WM8960_IFACE1_WL_MASK,
+                                      WM8960_IFACE1_WL(WM8960_IFACE1_WL_32BITS));
             break;
         default:
             retval = kStatus_InvalidArgument;
@@ -800,12 +800,12 @@ status_t TLV320AIC3110_ConfigDataFormat(tlv320aic3110_handle_t *handle, uint32_t
     return retval;
 }
 
-status_t TLV320AIC3110_SetJackDetect(tlv320aic3110_handle_t *handle, bool isEnabled)
+status_t WM8960_SetJackDetect(wm8960_handle_t *handle, bool isEnabled)
 {
     status_t retval = 0;
     uint16_t val    = 0;
 
-    if (TLV320AIC3110_ReadReg(TLV320AIC3110_ADDCTL2, &val) != kStatus_Success)
+    if (WM8960_ReadReg(WM8960_ADDCTL2, &val) != kStatus_Success)
     {
         return kStatus_Fail;
     }
@@ -819,12 +819,12 @@ status_t TLV320AIC3110_SetJackDetect(tlv320aic3110_handle_t *handle, bool isEnab
         val &= 0xCFU;
     }
 
-    retval = TLV320AIC3110_WriteReg(handle, TLV320AIC3110_ADDCTL2, val);
+    retval = WM8960_WriteReg(handle, WM8960_ADDCTL2, val);
 
     return retval;
 }
 
-status_t TLV320AIC3110_WriteReg(tlv320aic3110_handle_t *handle, uint8_t reg, uint16_t val)
+status_t WM8960_WriteReg(wm8960_handle_t *handle, uint8_t reg, uint16_t val)
 {
     uint8_t cmd;
     uint8_t buff = (uint8_t)val & 0xFFU;
@@ -837,9 +837,9 @@ status_t TLV320AIC3110_WriteReg(tlv320aic3110_handle_t *handle, uint8_t reg, uin
     return CODEC_I2C_Send(handle->i2cHandle, handle->config->slaveAddress, cmd, 1U, &buff, 1U);
 }
 
-status_t TLV320AIC3110_ReadReg(uint8_t reg, uint16_t *val)
+status_t WM8960_ReadReg(uint8_t reg, uint16_t *val)
 {
-    if (reg >= TLV320AIC3110_CACHEREGNUM)
+    if (reg >= WM8960_CACHEREGNUM)
     {
         return kStatus_InvalidArgument;
     }
@@ -849,18 +849,18 @@ status_t TLV320AIC3110_ReadReg(uint8_t reg, uint16_t *val)
     return kStatus_Success;
 }
 
-status_t TLV320AIC3110_ModifyReg(tlv320aic3110_handle_t *handle, uint8_t reg, uint16_t mask, uint16_t val)
+status_t WM8960_ModifyReg(wm8960_handle_t *handle, uint8_t reg, uint16_t mask, uint16_t val)
 {
     status_t retval  = 0;
     uint16_t reg_val = 0;
-    retval           = TLV320AIC3110_ReadReg(reg, &reg_val);
+    retval           = WM8960_ReadReg(reg, &reg_val);
     if (retval != kStatus_Success)
     {
         return kStatus_Fail;
     }
     reg_val &= (uint16_t)~mask;
     reg_val |= val;
-    retval = TLV320AIC3110_WriteReg(handle, reg, reg_val);
+    retval = WM8960_WriteReg(handle, reg, reg_val);
     if (retval != kStatus_Success)
     {
         return kStatus_Fail;
@@ -868,32 +868,32 @@ status_t TLV320AIC3110_ModifyReg(tlv320aic3110_handle_t *handle, uint8_t reg, ui
     return kStatus_Success;
 }
 
-status_t TLV320AIC3110_SetPlay(tlv320aic3110_handle_t *handle, uint32_t playSource)
+status_t WM8960_SetPlay(wm8960_handle_t *handle, uint32_t playSource)
 {
     status_t ret = kStatus_Success;
 
-    if (((uint32_t)kTLV320AIC3110_PlaySourcePGA & playSource) != 0U)
+    if (((uint32_t)kWM8960_PlaySourcePGA & playSource) != 0U)
     {
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_BYPASS1, 0x80U, 0x80U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_BYPASS2, 0x80U, 0x80U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_LOUTMIX, 0x180U, 0U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_ROUTMIX, 0x180U, 0U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_BYPASS1, 0x80U, 0x80U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_BYPASS2, 0x80U, 0x80U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_LOUTMIX, 0x180U, 0U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_ROUTMIX, 0x180U, 0U), ret);
     }
 
-    if ((playSource & (uint32_t)kTLV320AIC3110_PlaySourceDAC) != 0U)
+    if ((playSource & (uint32_t)kWM8960_PlaySourceDAC) != 0U)
     {
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_BYPASS1, 0x80U, 0x00U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_BYPASS2, 0x80U, 0x00U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_LOUTMIX, 0x180U, 0x100U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_ROUTMIX, 0x180U, 0x100U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_BYPASS1, 0x80U, 0x00U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_BYPASS2, 0x80U, 0x00U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_LOUTMIX, 0x180U, 0x100U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_ROUTMIX, 0x180U, 0x100U), ret);
     }
 
-    if ((playSource & (uint32_t)kTLV320AIC3110_PlaySourceInput) != 0U)
+    if ((playSource & (uint32_t)kWM8960_PlaySourceInput) != 0U)
     {
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_BYPASS1, 0x80U, 0x0U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_BYPASS2, 0x80U, 0x0U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_LOUTMIX, 0x180U, 0x80U), ret);
-        TLV320AIC3110_CHECK_RET(TLV320AIC3110_ModifyReg(handle, TLV320AIC3110_ROUTMIX, 0x180U, 0x80U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_BYPASS1, 0x80U, 0x0U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_BYPASS2, 0x80U, 0x0U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_LOUTMIX, 0x180U, 0x80U), ret);
+        WM8960_CHECK_RET(WM8960_ModifyReg(handle, WM8960_ROUTMIX, 0x180U, 0x80U), ret);
     }
 
     return ret;

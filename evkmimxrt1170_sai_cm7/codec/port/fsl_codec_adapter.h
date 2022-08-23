@@ -30,7 +30,7 @@
 #endif /* CODEC_WM8904_ENABLE */
 
 #ifdef CODEC_WM8960_ENABLE
-#include "fsl_codec_wm8960_adapter.h"
+#include "fsl_codec_tlv320aic3110_adapter.h"
 
 #if ((defined HAL_CODEC_HANDLER_SIZE) && (HAL_CODEC_HANDLER_SIZE < HAL_CODEC_WM8960_HANDLER_SIZE))
 #undef HAL_CODEC_HANDLER_SIZE
@@ -42,20 +42,6 @@
 #endif
 
 #endif /* CODEC_WM8960_ENABLE */
-
-#ifdef CODEC_TLV320AIC3110_ENABLE
-#include "fsl_codec_tlv320aic3110_adapter.h"
-
-#if ((defined HAL_CODEC_HANDLER_SIZE) && (HAL_CODEC_HANDLER_SIZE < HAL_CODEC_TLV320AIC3110_HANDLER_SIZE))
-#undef HAL_CODEC_HANDLER_SIZE
-#define HAL_CODEC_HANDLER_SIZE HAL_CODEC_TLV320AIC3110_HANDLER_SIZE
-#endif
-
-#if (!(defined HAL_CODEC_HANDLER_SIZE))
-#define HAL_CODEC_HANDLER_SIZE HAL_CODEC_TLV320AIC3110_HANDLER_SIZE
-#endif
-
-#endif /* CODEC_TLV320AIC3110_ENABLE */
 
 #ifdef CODEC_WM8524_ENABLE
 #include "fsl_codec_wm8524_adapter.h"
